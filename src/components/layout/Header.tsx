@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { useMobileSearch } from "@/context/MobileSearchContext";
 import { Business } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -64,7 +65,7 @@ export function Header() {
   const [catOpen,          setCatOpen]          = useState(false);
   const [profileOpen,      setProfileOpen]      = useState(false);
   const [cartOpen,         setCartOpen]         = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const { mobileSearchOpen, openMobileSearch, closeMobileSearch, toggleMobileSearch } = useMobileSearch();
 
   const catRef     = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -130,7 +131,7 @@ export function Header() {
           </h1>
           <button
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
-            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            onClick={() => toggleMobileSearch()}
           >
             <Search size={20} style={{ color: "#444" }} />
           </button>
@@ -175,7 +176,7 @@ export function Header() {
           <div className="flex-1" />
           <button
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            onClick={() => toggleMobileSearch()}
           >
             <Search size={20} style={{ color: "#444" }} />
           </button>
@@ -425,7 +426,7 @@ export function Header() {
             {/* Mobile search toggle */}
             <button
               className="md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors"
-              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              onClick={() => toggleMobileSearch()}
             >
               <Search size={22} style={{ color: "#444" }} />
             </button>
