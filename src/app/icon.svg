@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Cart handle -->
+  <line x1="8" y1="18" x2="22" y2="42" stroke="#7ab8d9" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Cart body (wireframe style) -->
+  <!-- Bottom bar -->
+  <rect x="18" y="78" width="64" height="6" rx="3" fill="#c8d8e8"/>
+  <!-- Left side vertical bars -->
+  <rect x="18" y="42" width="4" height="42" rx="2" fill="#c8d8e8"/>
+  <!-- Right side vertical bars -->
+  <rect x="78" y="42" width="4" height="42" rx="2" fill="#c8d8e8"/>
+  <!-- Horizontal rails (3 of them) -->
+  <rect x="18" y="42" width="64" height="4" rx="2" fill="#c8d8e8"/>
+  <rect x="18" y="57" width="64" height="3" rx="1.5" fill="#c8d8e8"/>
+  <rect x="18" y="70" width="64" height="3" rx="1.5" fill="#c8d8e8"/>
+  <!-- Vertical interior bars -->
+  <rect x="35" y="42" width="3" height="36" rx="1.5" fill="#c8d8e8"/>
+  <rect x="51" y="42" width="3" height="36" rx="1.5" fill="#c8d8e8"/>
+  <rect x="67" y="42" width="3" height="36" rx="1.5" fill="#c8d8e8"/>
+
+  <!-- Wheels -->
+  <circle cx="32" cy="90" r="7" fill="#7ab8d9"/>
+  <circle cx="32" cy="90" r="4" fill="#4a8aaf"/>
+  <circle cx="68" cy="90" r="7" fill="#7ab8d9"/>
+  <circle cx="68" cy="90" r="4" fill="#4a8aaf"/>
+
+  <!-- Globe inside cart -->
+  <circle cx="50" cy="52" r="26" fill="#0d3b6e"/>
+  <!-- Globe gradient overlay -->
+  <circle cx="50" cy="52" r="26" fill="url(#globeGrad)"/>
+  <!-- Land masses (simplified) -->
+  <ellipse cx="44" cy="44" rx="10" ry="7" fill="#1a6b8a" opacity="0.7" transform="rotate(-20 44 44)"/>
+  <ellipse cx="58" cy="55" rx="7" ry="5" fill="#1a6b8a" opacity="0.6" transform="rotate(10 58 55)"/>
+  <ellipse cx="40" cy="60" rx="5" ry="4" fill="#1a6b8a" opacity="0.5"/>
+  <ellipse cx="62" cy="42" rx="4" ry="3" fill="#1a6b8a" opacity="0.6"/>
+  <!-- Globe latitude lines -->
+  <ellipse cx="50" cy="52" rx="26" ry="10" fill="none" stroke="#78c8e8" stroke-width="0.8" opacity="0.5"/>
+  <ellipse cx="50" cy="52" rx="26" ry="18" fill="none" stroke="#78c8e8" stroke-width="0.6" opacity="0.4"/>
+  <!-- Globe longitude line -->
+  <ellipse cx="50" cy="52" rx="12" ry="26" fill="none" stroke="#78c8e8" stroke-width="0.8" opacity="0.5"/>
+  <ellipse cx="50" cy="52" rx="22" ry="26" fill="none" stroke="#78c8e8" stroke-width="0.6" opacity="0.4"/>
+  <!-- Globe equator -->
+  <line x1="24" y1="52" x2="76" y2="52" stroke="#78c8e8" stroke-width="0.8" opacity="0.5"/>
+  <!-- Globe outline -->
+  <circle cx="50" cy="52" r="26" fill="none" stroke="#78c8e8" stroke-width="1.5" opacity="0.8"/>
+  <!-- Highlight -->
+  <ellipse cx="41" cy="40" rx="7" ry="5" fill="white" opacity="0.18" transform="rotate(-30 41 40)"/>
+
+  <defs>
+    <radialGradient id="globeGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#3a9fc8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#041f4a" stop-opacity="0.5"/>
+    </radialGradient>
+  </defs>
+</svg>
