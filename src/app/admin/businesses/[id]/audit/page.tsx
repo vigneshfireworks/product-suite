@@ -48,9 +48,9 @@ function renderChanges(rec: AuditRecord, businessId: string): React.ReactNode {
     return (
       <div className="flex flex-wrap gap-1.5 items-center">
         <span className="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-lg">Created</span>
-        {name && <span className="text-xs text-gray-700 font-medium">{String(name)}</span>}
-        {c.amount   && <span className="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">₹{Number(c.amount).toLocaleString("en-IN")}</span>}
-        {c.status   && <span className="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg capitalize">{String(c.status)}</span>}
+        {!!name && <span className="text-xs text-gray-700 font-medium">{String(name)}</span>}
+        {!!c.amount   && <span className="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">₹{Number(c.amount).toLocaleString("en-IN")}</span>}
+        {!!c.status   && <span className="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg capitalize">{String(c.status)}</span>}
       </div>
     );
   }
@@ -61,7 +61,7 @@ function renderChanges(rec: AuditRecord, businessId: string): React.ReactNode {
     return (
       <div className="flex flex-wrap gap-1.5 items-center">
         <span className="text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-lg">Deleted</span>
-        {name && <span className="text-xs text-gray-700 font-medium">{String(name)}</span>}
+        {!!name && <span className="text-xs text-gray-700 font-medium">{String(name)}</span>}
       </div>
     );
   }
