@@ -1,26 +1,351 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
+/* Tailwind v4: define custom theme tokens */
+@theme {
+  /* Colors */
+  --color-accent: #FFC43F;
+  --color-accent-dark: #f7a422;
+  --color-brand-dark: #222222;
+  --color-brand-light-dark: #727272;
+  --color-brand-light: #ffffff;
+  --color-brand-grey: #dbdbdb;
+  --color-brand-light-grey: #fafafa;
+  --color-brand-primary: #6995B1;
+  --color-brand-light-primary: #eef1f3;
+
+  /* Fonts */
+  --font-family-sans: "Open Sans", sans-serif;
+  --font-family-heading: "Nunito", sans-serif;
+
+  /* Box shadows */
+  --shadow-card: 0px 5px 22px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0px 21px 44px rgba(0, 0, 0, 0.08);
+
+  /* Border radius */
+  --radius-card: 16px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --accent: #FFC43F;
+  --accent-dark: #f7a422;
+  --dark: #222222;
+  --light-dark: #727272;
+  --primary: #6995B1;
+  --light-primary: #eef1f3;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
+  color: #747474;
+  letter-spacing: 0.03em;
+  background-color: #fff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Nunito", sans-serif;
+  color: #222222;
+  font-weight: 700;
+}
+
+/* Preloader */
+.preloader-wrapper {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #FFC43F; border-radius: 3px; }
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #FFC43F;
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar but keep scroll */
+.hide-scrollbar, .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar, .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Mobile bottom nav spacing */
+@media (max-width: 768px) {
+  .has-bottom-nav {
+    padding-bottom: 72px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Business Card Hover Animations
+════════════════════════════════════════════════════════════════ */
+
+/* Register custom properties so translate/scale animate smoothly */
+@property --tx { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --ty { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --cx { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --cy { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+/* ── Crackers: spark particles ──────────────────────────────── */
+.spark-p {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.group:hover .spark-p {
+  animation: vs-spark 0.8s ease-out infinite;
+}
+@keyframes vs-spark {
+  0%   { translate: 0px 0px; scale: 1.5; opacity: 1; }
+  50%  { opacity: 0.8; }
+  100% { translate: var(--tx) var(--ty); scale: 0; opacity: 0; }
+}
+.crackers-flash {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at center, #FFFDE7cc 0%, transparent 65%);
+  opacity: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.group:hover .crackers-flash {
+  animation: vs-flash 0.8s ease-out infinite;
+}
+@keyframes vs-flash {
+  0%, 6% { opacity: 0.85; }
+  45%    { opacity: 0; }
+  100%   { opacity: 0; }
+}
+
+/* ── Invitation envelope ────────────────────────────────────── */
+.invite-persp {
+  perspective: 380px;
+  perspective-origin: 50% 0%;
+}
+.env-flap-g {
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+}
+.group:hover .env-flap-g {
+  animation: vs-flap 3s ease-in-out infinite;
+}
+@keyframes vs-flap {
+  0%, 8%    { transform: rotateX(0deg); }
+  28%, 65%  { transform: rotateX(-172deg); }
+  88%, 100% { transform: rotateX(0deg); }
+}
+.env-letter-g {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.group:hover .env-letter-g {
+  animation: vs-letter 3s ease-in-out infinite;
+}
+@keyframes vs-letter {
+  0%, 22%   { opacity: 0; transform: translateY(8px); }
+  40%, 65%  { opacity: 1; transform: translateY(-6px); }
+  82%, 100% { opacity: 0; transform: translateY(8px); }
+}
+
+/* ── Gift box ───────────────────────────────────────────────── */
+.gift-lid-g {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.group:hover .gift-lid-g {
+  animation: vs-lid 1.5s cubic-bezier(.36,.07,.19,.97) infinite;
+}
+@keyframes vs-lid {
+  0%, 12%   { transform: translateY(0px) rotate(0deg); }
+  32%, 55%  { transform: translateY(-20px) rotate(-6deg); }
+  72%       { transform: translateY(-15px) rotate(4deg); }
+  90%, 100% { transform: translateY(0px) rotate(0deg); }
+}
+.confetti-p {
+  position: absolute;
+  width: 7px; height: 7px;
+  opacity: 0;
+  pointer-events: none;
+  border-radius: 1px;
+}
+.group:hover .confetti-p {
+  animation: vs-confetti 1.5s ease-out infinite;
+}
+@keyframes vs-confetti {
+  0%   { translate: 0px 0px; opacity: 0; rotate: 0deg; scale: 1; }
+  8%   { opacity: 1; }
+  100% { translate: var(--cx) var(--cy); opacity: 0; rotate: 360deg; scale: 0.2; }
+}
+
+/* ── Market bars ────────────────────────────────────────────── */
+.mkt-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scaleY(0);
+}
+.group:hover .mkt-bar {
+  animation: vs-bar 2.2s ease-in-out infinite;
+}
+@keyframes vs-bar {
+  0%, 5%    { transform: scaleY(0); }
+  30%, 52%  { transform: scaleY(1.06); }
+  68%, 72%  { transform: scaleY(0.88); }
+  88%, 100% { transform: scaleY(1); }
+}
+.mkt-trend {
+  stroke-dasharray: 90;
+  stroke-dashoffset: 90;
+  opacity: 0;
+}
+.group:hover .mkt-trend {
+  animation: vs-trend 2.2s ease-out infinite;
+}
+@keyframes vs-trend {
+  0%, 15% { stroke-dashoffset: 90; opacity: 0; }
+  18%     { opacity: 1; }
+  70%, 100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* ── Finance coins ──────────────────────────────────────────── */
+.coin-p {
+  position: absolute;
+  font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+  line-height: 1;
+}
+.group:hover .coin-p {
+  animation: vs-coin 1.6s ease-out infinite;
+}
+@keyframes vs-coin {
+  0%   { translate: 0px 0px; opacity: 0; scale: 0.4; }
+  12%  { opacity: 1; scale: 1.1; }
+  70%  { opacity: 0.6; }
+  100% { translate: var(--cx) var(--cy); opacity: 0; scale: 0.5; }
+}
+
+/* SVG/content overlay: hidden by default, fades in on hover */
+.biz-anim-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 90px;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  overflow: visible;
+}
+@media (min-width: 640px) {
+  .biz-anim-overlay { height: 112px; }
+}
+.group:hover .biz-anim-overlay { opacity: 1; }
+
+/* Inline anim container (for sparks/coins that live inside the image zone) */
+.biz-anim-inline {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+  overflow: visible;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Product Card Animations
+════════════════════════════════════════════════════════════════ */
+
+/* Image pump-up: spring overshoot easing gives the "bounce" feel */
+.prod-img-zone {
+  overflow: hidden;
+  cursor: pointer;
+}
+.prod-img-zone img,
+.prod-img-zone .prod-placeholder {
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+              filter 0.25s ease;
+  will-change: transform;
+}
+.prod-card:hover .prod-img-zone img,
+.prod-card:hover .prod-img-zone .prod-placeholder {
+  transform: scale(1.16) rotate(1.5deg);
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.18));
+}
+
+/* Image carousel fade transition */
+.prod-modal-img {
+  animation: modal-img-in 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes modal-img-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Modal backdrop */
+.prod-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modal-fade-in 0.18s ease;
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.prod-modal-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modal-slide-in 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  scrollbar-width: thin;
+}
+@keyframes modal-slide-in {
+  from { transform: scale(0.88) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Footer brand swap animation */
+@keyframes footer-brand-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Respect user's motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .spark-p, .crackers-flash, .env-flap-g, .env-letter-g,
+  .gift-lid-g, .confetti-p, .mkt-bar, .mkt-trend, .coin-p {
+    animation: none !important;
+  }
+  .group:hover .biz-anim-overlay { opacity: 0; }
+  .prod-img-zone img,
+  .prod-img-zone .prod-placeholder {
+    transition: none !important;
+    transform: none !important;
+  }
 }
