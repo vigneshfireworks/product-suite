@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Briefcase, Users, UserCheck, Menu, X, LogOut,
-  ChevronDown, ChevronRight, Store, ShoppingCart, FileText,
+  ChevronDown, ChevronRight, Store, ShoppingCart, FileText, Shield,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ const adminTopItems = [
   { href: "/admin/businesses", label: "Businesses", icon: <Briefcase size={18} /> },
   { href: "/admin/partners",   label: "Partners",   icon: <UserCheck size={18} /> },
   { href: "/admin/users",      label: "Users",      icon: <Users size={18} /> },
+  { href: "/admin/roles",      label: "Roles",      icon: <Shield size={18} /> },
   { href: "/admin/about",      label: "About Us",   icon: <FileText size={18} /> },
 ];
 

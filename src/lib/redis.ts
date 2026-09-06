@@ -35,4 +35,6 @@ export const keys = {
   session: (token: string) => `session:${token}`,
   userBusinessAccess: (userId: string) => `user:business_access:${userId}`,
   aboutContent: () => `about:content`,
+  role: (id: string) => `role:${id}`,
+  roles: () => `roles`,
 };
