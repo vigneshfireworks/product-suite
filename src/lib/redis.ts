@@ -34,4 +34,5 @@ export const keys = {
   categoriesByBusiness: (businessId: string) => `categories:business:${businessId}`,
   session: (token: string) => `session:${token}`,
   userBusinessAccess: (userId: string) => `user:business_access:${userId}`,
+  aboutContent: () => `about:content`,
 };

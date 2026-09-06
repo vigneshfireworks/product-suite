@@ -41,3 +41,4 @@ next-env.d.ts
 
 # uploaded product images — stored in Vercel Blob, not git
 /public/uploads/
+.env*
