@@ -47,14 +47,16 @@ export function Footer() {
           {/* Centre: nav links */}
           <div className="flex flex-wrap items-center gap-5">
             {[
-              { href: "/",       label: "Home"     },
-              { href: "/login",  label: "Login"    },
-              { href: "/signup", label: "Sign Up"  },
-              { href: "/about",  label: "About Us" },
-            ].map(({ href, label }) => (
+              { href: "/",       label: "Home",     newTab: false },
+              { href: "/login",  label: "Login",    newTab: false },
+              { href: "/signup", label: "Sign Up",  newTab: false },
+              { href: "/about",  label: "About Us", newTab: true  },
+            ].map(({ href, label, newTab }) => (
               <Link
                 key={href}
                 href={href}
+                target={newTab ? "_blank" : undefined}
+                rel={newTab ? "noopener noreferrer" : undefined}
                 className="text-gray-400 text-sm hover:text-accent transition-colors"
               >
                 {label}
