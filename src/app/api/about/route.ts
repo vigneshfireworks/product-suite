@@ -12,6 +12,8 @@ export interface AboutContent {
   email: string;
   mission: string;
   founded: string;
+  ceoPhoto1?: string;  // Vercel Blob URL
+  ceoPhoto2?: string;  // Vercel Blob URL
   updatedAt?: string;
 }
 
@@ -27,6 +29,8 @@ const defaultContent: AboutContent = {
   mission:
     "Our mission is to make shopping, finance, and market insights simple and accessible for everyone — from festive crackers to wedding invitations, curated gifts to expert financial tools.",
   founded: "2024",
+  ceoPhoto1: "",
+  ceoPhoto2: "",
 };
 
 // Public GET — no auth required
@@ -42,16 +46,18 @@ export async function PUT(req: NextRequest) {
 
   const body = await req.json();
   const content: AboutContent = {
-    headline: body.headline ?? "",
-    tagline: body.tagline ?? "",
-    story: body.story ?? "",
-    ceoName: body.ceoName ?? "",
-    ceoTitle: body.ceoTitle ?? "",
-    ceoPhone: body.ceoPhone ?? "",
-    email: body.email ?? "",
-    mission: body.mission ?? "",
-    founded: body.founded ?? "",
-    updatedAt: new Date().toISOString(),
+    headline:   body.headline   ?? "",
+    tagline:    body.tagline    ?? "",
+    story:      body.story      ?? "",
+    ceoName:    body.ceoName    ?? "",
+    ceoTitle:   body.ceoTitle   ?? "",
+    ceoPhone:   body.ceoPhone   ?? "",
+    email:      body.email      ?? "",
+    mission:    body.mission    ?? "",
+    founded:    body.founded    ?? "",
+    ceoPhoto1:  body.ceoPhoto1  ?? "",
+    ceoPhoto2:  body.ceoPhoto2  ?? "",
+    updatedAt:  new Date().toISOString(),
   };
 
   await redis.set(keys.aboutContent(), content);
