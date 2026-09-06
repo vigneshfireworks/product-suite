@@ -12,8 +12,6 @@ interface AboutContent {
   email: string;
   mission: string;
   founded: string;
-  ceoPhoto1?: string;
-  ceoPhoto2?: string;
 }
 
 export default function AboutPage() {
@@ -39,12 +37,10 @@ export default function AboutPage() {
 
   if (!content) return null;
 
-  const hasPhotos = content.ceoPhoto1 || content.ceoPhoto2;
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
 
-      {/* Hero banner */}
+      {/* ── Hero ── */}
       <div
         className="rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden"
         style={{ background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)" }}
@@ -69,12 +65,12 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Quick stats */}
+      {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
           { icon: <CalendarDays size={20} />, label: "Founded", value: content.founded || "2024" },
           { icon: <Building2 size={20} />,   label: "Model",   value: "Multi-Business" },
-          { icon: <Target size={20} />,      label: "Mission", value: "One Platform" },
+          { icon: <Target size={20} />,      label: "Mission", value: "One Platform"   },
         ].map(({ icon, label, value }) => (
           <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-2">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#FFF8E7" }}>
@@ -86,81 +82,64 @@ export default function AboutPage() {
         ))}
       </div>
 
-      {/* CEO section — photos + info side by side */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Section title */}
+      {/* ── Meet the Founder ── */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-6 sm:px-8 pt-6 pb-4 border-b border-gray-50">
           <h2 className="font-heading font-bold text-brand-dark text-xl">Meet the Founder</h2>
         </div>
 
         <div className="p-6 sm:p-8">
-          {/* Photo gallery + info layout */}
-          <div className="flex flex-col sm:flex-row gap-8 items-start">
+          <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
 
-            {/* Photos */}
-            {hasPhotos && (
-              <div className="flex gap-3 flex-shrink-0">
-                {content.ceoPhoto1 && (
-                  <div className="relative">
-                    <img
-                      src={content.ceoPhoto1}
-                      alt={`${content.ceoName} - at work`}
-                      className="w-36 sm:w-44 rounded-2xl object-cover shadow-md"
-                      style={{ height: "200px", objectPosition: "top" }}
-                    />
-                    {/* decorative corner */}
-                    <div
-                      className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
-                      style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)", zIndex: -1 }}
-                    />
-                  </div>
-                )}
-                {content.ceoPhoto2 && (
-                  <div className="relative self-end">
-                    <img
-                      src={content.ceoPhoto2}
-                      alt={`${content.ceoName} - lifestyle`}
-                      className="w-28 sm:w-36 rounded-2xl object-cover shadow-md"
-                      style={{ height: "170px", objectPosition: "top" }}
-                    />
-                    <div
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-lg"
-                      style={{ background: "#1a1a2e", zIndex: -1 }}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              {/* Avatar fallback when no photos */}
-              {!hasPhotos && (
+            {/* Two photos side by side */}
+            <div className="flex gap-3 flex-shrink-0">
+              {/* Office / laptop photo */}
+              <div className="relative">
+                <img
+                  src="/images/ceo-office.jpg"
+                  alt="Vigneshwaran Ramachandran at work"
+                  className="rounded-2xl object-cover shadow-lg"
+                  style={{ width: "150px", height: "200px", objectPosition: "top center" }}
+                />
+                {/* gold accent */}
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-3xl mb-4"
-                  style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}
-                >
-                  {content.ceoName?.[0] ?? "V"}
-                </div>
-              )}
+                  className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
+                  style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }}
+                />
+              </div>
 
-              <div className="font-heading font-bold text-2xl text-brand-dark leading-tight">
+              {/* Walking / lifestyle photo – slightly lower */}
+              <div className="relative self-end">
+                <img
+                  src="/images/ceo-walking.jpg"
+                  alt="Vigneshwaran Ramachandran"
+                  className="rounded-2xl object-cover shadow-lg"
+                  style={{ width: "130px", height: "180px", objectPosition: "top center" }}
+                />
+                {/* dark accent */}
+                <div
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-lg"
+                  style={{ background: "#1a1a2e" }}
+                />
+              </div>
+            </div>
+
+            {/* Text info */}
+            <div className="flex-1 min-w-0">
+              <div className="font-heading font-bold text-2xl sm:text-3xl text-brand-dark leading-tight">
                 {content.ceoName}
               </div>
               <div
-                className="inline-block mt-1 mb-4 px-3 py-1 rounded-full text-xs font-bold"
+                className="inline-block mt-2 mb-4 px-3 py-1 rounded-full text-xs font-bold"
                 style={{ background: "#FFF8E7", color: "#f7a422" }}
               >
                 {content.ceoTitle || "CEO & Founder"}
               </div>
-
               <p className="text-gray-500 text-sm leading-relaxed mb-5">
-                Visionary entrepreneur who founded Product Suite in {content.founded || "2024"} with
-                a single small business and a bold vision. Through dedication and strategic growth,
-                that one venture has transformed into a thriving multi-business platform serving
-                customers across retail, finance, gifts, invitations, and market analytics.
+                Visionary entrepreneur who started with one small business in {content.founded || "2024"}
+                and built it into a thriving multi-business platform — bringing together retail,
+                finance, gifts, invitations, and market analytics all under one roof.
               </p>
-
               <div className="flex flex-wrap gap-3">
                 {content.ceoPhone && (
                   <a
@@ -188,7 +167,7 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Our Story */}
+      {/* ── Our Story ── */}
       {content.story && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
           <div className="flex items-center gap-2.5 mb-4">
@@ -201,7 +180,7 @@ export default function AboutPage() {
         </div>
       )}
 
-      {/* Mission */}
+      {/* ── Mission ── */}
       {content.mission && (
         <div
           className="rounded-2xl p-6 sm:p-8"
@@ -217,7 +196,7 @@ export default function AboutPage() {
         </div>
       )}
 
-      {/* Contact CTA */}
+      {/* ── Contact CTA ── */}
       <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#1a1a2e" }}>
         <h2 className="font-heading font-bold text-white text-xl mb-2">Get in Touch</h2>
         <p className="text-gray-400 text-sm mb-5">Have questions? We'd love to hear from you.</p>
