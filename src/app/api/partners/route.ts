@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ name: match.name, phone: match.phone });
   }
 
-  // Admin-only: full partner list
-  const auth = await requireAuth(req, ["admin"]);
+  // Admin + partner: full partner list
+  const auth = await requireAuth(req, ["admin", "partner"]);
   if (auth instanceof NextResponse) return auth;
 
   const ids = await redis.smembers<string[]>(keys.partners());

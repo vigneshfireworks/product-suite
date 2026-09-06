@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/apiAuth";
 import { User } from "@/types";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth(req, ["admin"]);
+  const auth = await requireAuth(req, ["admin", "partner"]);
   if (auth instanceof NextResponse) return auth;
 
   const ids = await redis.smembers<string[]>(keys.users());
