@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis, keys } from "@/lib/redis";
 import { requireAuth } from "@/lib/apiAuth";
-import { Role } from "../route";
+import { Role } from "@/lib/roles";
 
 export async function DELETE(
   req: NextRequest,
@@ -11,7 +11,6 @@ export async function DELETE(
   if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;
-
   const role = await redis.get<Role>(keys.role(id));
   if (!role) return NextResponse.json({ error: "Role not found" }, { status: 404 });
   if (role.isSystem) return NextResponse.json({ error: "Cannot delete a system role" }, { status: 403 });
@@ -29,7 +28,6 @@ export async function PUT(
   if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;
-
   const role = await redis.get<Role>(keys.role(id));
   if (!role) return NextResponse.json({ error: "Role not found" }, { status: 404 });
   if (role.isSystem) return NextResponse.json({ error: "Cannot edit a system role" }, { status: 403 });
