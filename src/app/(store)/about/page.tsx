@@ -89,7 +89,7 @@ export default function AboutPage() {
                 src="/images/ceo-office.jpg"
                 alt="Vigneshwaran Ramachandran"
                 className="rounded-2xl object-cover shadow-lg"
-                style={{ width: "200px", height: "260px", objectPosition: "top center" }}
+                style={{ width: "260px", height: "340px", objectPosition: "top center" }}
               />
               <div className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
                 style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }} />
