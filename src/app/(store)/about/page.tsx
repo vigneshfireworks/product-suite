@@ -45,23 +45,15 @@ export default function AboutPage() {
         className="rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden"
         style={{ background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)" }}
       >
-        <div
-          className="absolute -top-10 -right-10 w-64 h-64 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle,#FFC43F,transparent)" }}
-        />
+        <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle,#FFC43F,transparent)" }} />
         <div className="relative">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
-            style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}
-          >
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+            style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}>
             <ShoppingCart size={26} className="text-white" strokeWidth={2.5} />
           </div>
-          <h1 className="font-heading text-3xl sm:text-4xl font-bold mb-3 text-white">
-            {content.headline}
-          </h1>
-          <p className="text-[#FFC43F] text-base sm:text-lg font-semibold leading-snug max-w-xl">
-            {content.tagline}
-          </p>
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold mb-3 text-white">{content.headline}</h1>
+          <p className="text-[#FFC43F] text-base sm:text-lg font-semibold leading-snug max-w-xl">{content.tagline}</p>
         </div>
       </div>
 
@@ -91,37 +83,16 @@ export default function AboutPage() {
         <div className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
 
-            {/* Two photos side by side */}
-            <div className="flex gap-3 flex-shrink-0">
-              {/* Office / laptop photo */}
-              <div className="relative">
-                <img
-                  src="/images/ceo-office.jpg"
-                  alt="Vigneshwaran Ramachandran at work"
-                  className="rounded-2xl object-cover shadow-lg"
-                  style={{ width: "150px", height: "200px", objectPosition: "top center" }}
-                />
-                {/* gold accent */}
-                <div
-                  className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
-                  style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }}
-                />
-              </div>
-
-              {/* Walking / lifestyle photo – slightly lower */}
-              <div className="relative self-end">
-                <img
-                  src="/images/ceo-walking.jpg"
-                  alt="Vigneshwaran Ramachandran"
-                  className="rounded-2xl object-cover shadow-lg"
-                  style={{ width: "130px", height: "180px", objectPosition: "top center" }}
-                />
-                {/* dark accent */}
-                <div
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-lg"
-                  style={{ background: "#1a1a2e" }}
-                />
-              </div>
+            {/* Founder photo */}
+            <div className="relative flex-shrink-0">
+              <img
+                src="/images/ceo-office.jpg"
+                alt="Vigneshwaran Ramachandran"
+                className="rounded-2xl object-cover shadow-lg"
+                style={{ width: "200px", height: "260px", objectPosition: "top center" }}
+              />
+              <div className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
+                style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }} />
             </div>
 
             {/* Text info */}
@@ -129,10 +100,8 @@ export default function AboutPage() {
               <div className="font-heading font-bold text-2xl sm:text-3xl text-brand-dark leading-tight">
                 {content.ceoName}
               </div>
-              <div
-                className="inline-block mt-2 mb-4 px-3 py-1 rounded-full text-xs font-bold"
-                style={{ background: "#FFF8E7", color: "#f7a422" }}
-              >
+              <div className="inline-block mt-2 mb-4 px-3 py-1 rounded-full text-xs font-bold"
+                style={{ background: "#FFF8E7", color: "#f7a422" }}>
                 {content.ceoTitle || "CEO & Founder"}
               </div>
               <p className="text-gray-500 text-sm leading-relaxed mb-5">
@@ -142,23 +111,17 @@ export default function AboutPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 {content.ceoPhone && (
-                  <a
-                    href={`tel:${content.ceoPhone}`}
+                  <a href={`tel:${content.ceoPhone}`}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                    style={{ background: "#FFF8E7", color: "#f7a422" }}
-                  >
-                    <Phone size={14} />
-                    {content.ceoPhone}
+                    style={{ background: "#FFF8E7", color: "#f7a422" }}>
+                    <Phone size={14} />{content.ceoPhone}
                   </a>
                 )}
                 {content.email && (
-                  <a
-                    href={`mailto:${content.email}`}
+                  <a href={`mailto:${content.email}`}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-blue-600 transition-colors"
-                    style={{ background: "#EFF6FF" }}
-                  >
-                    <Mail size={14} />
-                    {content.email}
+                    style={{ background: "#EFF6FF" }}>
+                    <Mail size={14} />{content.email}
                   </a>
                 )}
               </div>
@@ -182,10 +145,8 @@ export default function AboutPage() {
 
       {/* ── Mission ── */}
       {content.mission && (
-        <div
-          className="rounded-2xl p-6 sm:p-8"
-          style={{ background: "linear-gradient(135deg,#FFF8E7 0%,#fff3d0 100%)", border: "1px solid #FFE082" }}
-        >
+        <div className="rounded-2xl p-6 sm:p-8"
+          style={{ background: "linear-gradient(135deg,#FFF8E7 0%,#fff3d0 100%)", border: "1px solid #FFE082" }}>
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "#FFC43F" }}>
               <Target size={16} className="text-white" />
@@ -200,13 +161,10 @@ export default function AboutPage() {
       <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#1a1a2e" }}>
         <h2 className="font-heading font-bold text-white text-xl mb-2">Get in Touch</h2>
         <p className="text-gray-400 text-sm mb-5">Have questions? We'd love to hear from you.</p>
-        <a
-          href={`mailto:${content.email}`}
+        <a href={`mailto:${content.email}`}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}
-        >
-          <Mail size={16} />
-          {content.email}
+          style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}>
+          <Mail size={16} />{content.email}
         </a>
       </div>
     </div>
