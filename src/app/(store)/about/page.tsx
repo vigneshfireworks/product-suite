@@ -98,8 +98,8 @@ export default function AboutPage() {
               <img
                 src="/images/ceo-office.jpg"
                 alt="Vigneshwaran Ramachandran"
-                className="rounded-2xl object-cover shadow-lg w-full sm:w-[260px]"
-                style={{ height: "300px", objectPosition: "top center" }}
+                className="rounded-2xl object-cover shadow-lg w-full sm:w-[260px] h-[420px] sm:h-[340px]"
+                style={{ objectPosition: "top center" }}
               />
               <div className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
                 style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }} />
