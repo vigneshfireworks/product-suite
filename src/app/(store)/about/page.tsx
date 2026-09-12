@@ -14,14 +14,26 @@ interface AboutContent {
   founded: string;
 }
 
+const DEFAULT: AboutContent = {
+  headline: "About Product Suite",
+  tagline: "Multiple businesses. One platform. Endless possibilities.",
+  story: "Product Suite was founded in 2024 by Vigneshwaran Ramachandran with a single small business and a big vision. What started as a humble venture has grown into a powerful multi-business platform bringing together retail, finance, gifts, invitations, and market analytics — all under one roof.",
+  ceoName: "Vigneshwaran Ramachandran",
+  ceoTitle: "CEO & Founder",
+  ceoPhone: "7373872638",
+  email: "productsuite@gmail.com",
+  mission: "Our mission is to make shopping, finance, and market insights simple and accessible for everyone — from festive crackers to wedding invitations, curated gifts to expert financial tools.",
+  founded: "2024",
+};
+
 export default function AboutPage() {
-  const [content, setContent] = useState<AboutContent | null>(null);
+  const [content, setContent] = useState<AboutContent>(DEFAULT);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/about")
-      .then(r => r.json())
-      .then(d => { setContent(d); setLoading(false); })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setContent(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
@@ -34,8 +46,6 @@ export default function AboutPage() {
       </div>
     );
   }
-
-  if (!content) return null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
