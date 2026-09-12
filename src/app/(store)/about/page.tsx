@@ -94,12 +94,12 @@ export default function AboutPage() {
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
 
             {/* Founder photo */}
-            <div className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0 w-full sm:w-[260px]">
               <img
                 src="/images/ceo-office.jpg"
                 alt="Vigneshwaran Ramachandran"
-                className="rounded-2xl object-cover shadow-lg"
-                style={{ width: "260px", height: "340px", objectPosition: "top center" }}
+                className="rounded-2xl object-cover shadow-lg w-full sm:w-[260px]"
+                style={{ height: "300px", objectPosition: "top center" }}
               />
               <div className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
                 style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }} />
