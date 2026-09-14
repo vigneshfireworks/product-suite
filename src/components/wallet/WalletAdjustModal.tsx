@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Wallet, Plus, Minus, Loader2 } from "lucide-react";
+import { Wallet, Plus, Minus, Loader2, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { WalletTransaction } from "@/types";
 
@@ -33,6 +34,8 @@ export function WalletAdjustModal({
   const [note, setNote]         = useState("");
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const load = () => {
     setLoading(true);
@@ -61,6 +64,25 @@ export function WalletAdjustModal({
       load();
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (tx: WalletTransaction) => {
+    const ok = await confirm(
+      "Delete this wallet entry?",
+      `This removes "${tx.type}${tx.note ? ` — ${tx.note}` : ""}" (${tx.amount >= 0 ? "+" : ""}${formatCurrency(tx.amount)}) and adjusts the balance to match. This cannot be undone.`
+    );
+    if (!ok) return;
+    setDeletingId(tx.id);
+    try {
+      const res = await fetch(`/api/wallet/${tx.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || "Failed to delete entry"); return; }
+      load();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -121,19 +143,31 @@ export function WalletAdjustModal({
             ) : !data?.transactions.length ? (
               <p className="text-xs text-gray-400 text-center py-4">No wallet activity yet</p>
             ) : data.transactions.slice(0, 10).map(tx => (
-              <div key={tx.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-50 text-xs">
-                <div>
-                  <p className="font-semibold text-brand-dark capitalize">{tx.type}{tx.note ? ` — ${tx.note}` : ""}</p>
+              <div key={tx.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-50 text-xs group">
+                <div className="min-w-0">
+                  <p className="font-semibold text-brand-dark capitalize truncate">{tx.type}{tx.note ? ` — ${tx.note}` : ""}</p>
                   <p className="text-gray-400">{formatDateTime(tx.createdAt)}</p>
                 </div>
-                <span className="font-bold" style={{ color: tx.amount >= 0 ? "#16a34a" : "#ef4444" }}>
-                  {tx.amount >= 0 ? "+" : ""}{formatCurrency(tx.amount)}
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="font-bold" style={{ color: tx.amount >= 0 ? "#16a34a" : "#ef4444" }}>
+                    {tx.amount >= 0 ? "+" : ""}{formatCurrency(tx.amount)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(tx)}
+                    disabled={deletingId === tx.id}
+                    title="Delete this entry"
+                    className="p-1 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  >
+                    {deletingId === tx.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+      <ConfirmDialog />
     </Modal>
   );
 }

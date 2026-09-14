@@ -478,7 +478,8 @@ function ProductCard({ product, business }: { product: Product; business: Busine
     else addToWatchlist({ productId: product.id, businessId: business.id });
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!user) { window.location.href = "/login"; return; }
     addToCart({ productId: product.id, businessId: business.id, name: product.name, price: product.sellingPrice, quantity: qty });
     setAdded(true);
