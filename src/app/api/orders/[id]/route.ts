@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { redis, keys } from "@/lib/redis";
 import { requireAuth } from "@/lib/apiAuth";
 import { recordHistory } from "@/lib/history";
-import { Order, Product, OrderItem } from "@/types";
+import { Order, Product, OrderItem, Business } from "@/types";
+import { creditWalletForPurchase, refundWalletRedemption, adjustWalletBalance } from "@/lib/wallet";
 
 async function adjustStock(items: OrderItem[], delta: number) {
   await Promise.all(items.map(async item => {
@@ -56,9 +57,34 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!wasCancel && isCancel) {
     // Order just cancelled → restore stock
     await adjustStock(existing.items || [], +1);
+    // Restore any wallet balance that was redeemed against this order
+    if (existing.walletRedeemed) {
+      await refundWalletRedemption({
+        userId: existing.userId, businessId: existing.businessId, orderId: id,
+        invoiceId: existing.invoiceId, amount: existing.walletRedeemed, createdBy: auth.userId,
+      });
+    }
   } else if (wasCancel && !isCancel) {
     // Order un-cancelled → reduce stock again
     await adjustStock(existing.items || [], -1);
+    // Re-apply the wallet amount that was refunded when it was cancelled
+    if (existing.walletRedeemed) {
+      await adjustWalletBalance({
+        userId: existing.userId, amount: -existing.walletRedeemed,
+        note: `Wallet re-debited: order ${id} un-cancelled`, createdBy: auth.userId,
+      });
+    }
+  }
+
+  // Wallet cashback — credited once, when a wallet-eligible order is delivered & completed
+  if (body.status === "delivered_completed" && existing.status !== "delivered_completed") {
+    const business = await redis.get<Business>(keys.business(existing.businessId));
+    if (business?.walletEnabled) {
+      await creditWalletForPurchase({
+        userId: existing.userId, businessId: existing.businessId, orderId: id,
+        invoiceId: existing.invoiceId, purchaseAmount: existing.totalAmount, createdBy: auth.userId,
+      });
+    }
   }
 
   await recordHistory("order", id, "update", { old: existing, new: updated }, auth.userId, existing.businessId);

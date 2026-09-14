@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Search, Heart, User, ShoppingCart, ChevronDown,
-  Phone, LogOut, LayoutDashboard, Package, ArrowLeft,
+  Phone, LogOut, LayoutDashboard, Package, ArrowLeft, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -474,6 +474,11 @@ export function Header() {
                     <Link href="/orders" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                       <Package size={15} /> My Orders
                     </Link>
+                    {user.role === "customer" && (
+                      <Link href="/wallet" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                        <Wallet size={15} /> Wallet
+                      </Link>
+                    )}
                     <hr className="my-1 border-gray-100" />
                     <button
                       onClick={handleLogout}

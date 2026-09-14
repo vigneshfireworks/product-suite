@@ -12,6 +12,7 @@ import { useActiveBusiness } from "@/context/ActiveBusinessContext";
 import { bizEmoji, bizColors } from "@/lib/biz-utils";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { AnimatedAddToCartButton } from "@/components/ui/AnimatedAddToCartButton";
 import { StatusBadge } from "@/components/ui/Badge";
 
 export default function BusinessPage() {
@@ -260,16 +261,17 @@ function ProductModal({
   // Close on backdrop click; stop propagation inside the card
   return (
     <div className="prod-modal-backdrop" onClick={onClose}>
-      <div className="prod-modal-card" onClick={e => e.stopPropagation()}>
+      <div className="prod-modal-card" style={{ "--flood-color": "#cc274a" } as React.CSSProperties} onClick={e => e.stopPropagation()}>
+        <div className="prod-modal-flood" />
 
         {/* ── Header bar ── */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
             {business.name}
           </span>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-500 font-bold text-lg leading-none"
+            className="w-8 h-8 rounded-full border border-gray-600 hover:bg-white/10 flex items-center justify-center transition-colors text-gray-300 font-bold text-lg leading-none"
             aria-label="Close"
           >
             ×
@@ -278,12 +280,12 @@ function ProductModal({
 
         {/* ── Image carousel ── */}
         <div
-          className="mx-5 mb-1 bg-gray-50 rounded-2xl h-52 flex items-center justify-center overflow-hidden relative select-none"
+          className="mx-5 mb-1 bg-black/30 rounded-2xl h-52 flex items-center justify-center overflow-hidden relative select-none"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
           {discount > 0 && (
-            <span className="absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full z-10">
+            <span className="prod-modal-highlight absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full z-10">
               -{discount}%
             </span>
           )}
@@ -292,11 +294,11 @@ function ProductModal({
               if (isWishlisted) removeFromWatchlist(product.id);
               else addToWatchlist({ productId: product.id, businessId: business.id });
             }}
-            className="absolute top-3 right-3 z-10 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-colors"
+            className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
           >
             <Heart
               size={14}
-              style={{ color: isWishlisted ? "#ef4444" : "#d1d5db" }}
+              style={{ color: isWishlisted ? "#ef4444" : "#9ca3af" }}
               fill={isWishlisted ? "#ef4444" : "none"}
             />
           </button>
@@ -352,7 +354,7 @@ function ProductModal({
                 style={{
                   width:      i === imgIdx ? 20 : 6,
                   height:     6,
-                  background: i === imgIdx ? "#FFC43F" : "#D1D5DB",
+                  background: i === imgIdx ? "#cc274a" : "#3f3f46",
                 }}
               />
             ))}
@@ -361,29 +363,29 @@ function ProductModal({
 
         {/* ── Image counter (e.g. 1 / 3) ── */}
         {hasMultiple && (
-          <p className="text-center text-[10px] text-gray-400 -mt-1 mb-2 font-medium">
+          <p className="text-center text-[10px] text-gray-500 -mt-1 mb-2 font-medium">
             {imgIdx + 1} / {images.length}
           </p>
         )}
 
         {/* ── Details ── */}
         <div className="px-5 pb-5 space-y-3">
-          <h2 className="font-heading font-bold text-lg text-brand-dark leading-snug">
+          <h2 className="font-heading font-bold text-lg text-white leading-snug">
             {product.name}
           </h2>
 
           {/* Price row */}
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-brand-dark font-heading">
+            <span className="text-2xl font-bold text-white font-heading">
               {formatCurrency(product.sellingPrice)}
             </span>
             {product.originalPrice > product.sellingPrice && (
-              <span className="text-sm text-gray-400 line-through">
+              <span className="text-sm text-gray-500 line-through">
                 {formatCurrency(product.originalPrice)}
               </span>
             )}
             {discount > 0 && (
-              <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
                 Save {discount}%
               </span>
             )}
@@ -391,15 +393,15 @@ function ProductModal({
 
           {/* Stock */}
           {product.stock <= 5 && product.stock > 0 && (
-            <p className="text-xs font-semibold text-orange-500">⚠ Only {product.stock} left in stock!</p>
+            <p className="text-xs font-semibold text-orange-400">⚠ Only {product.stock} left in stock!</p>
           )}
           {product.stock === 0 && (
-            <p className="text-xs font-semibold text-red-500">✕ Out of stock</p>
+            <p className="text-xs font-semibold text-red-400">✕ Out of stock</p>
           )}
 
           {/* Description */}
           {product.description && (
-            <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+            <p className="text-sm text-gray-400 leading-relaxed">{product.description}</p>
           )}
 
           {/* Video link */}
@@ -408,7 +410,7 @@ function ProductModal({
               href={product.videoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl border-2 border-red-100 bg-red-50 hover:bg-red-100 hover:border-red-200 transition-colors group/vid"
+              className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl border-2 border-red-900/40 bg-red-950/30 hover:bg-red-950/50 hover:border-red-800/50 transition-colors group/vid"
             >
               {/* YouTube-style play icon */}
               <span className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center shrink-0 group-hover/vid:bg-red-600 transition-colors">
@@ -417,10 +419,10 @@ function ProductModal({
                 </svg>
               </span>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-red-700 group-hover/vid:text-red-800">Watch Product Video</div>
-                <div className="text-[10px] text-red-400 truncate">{product.videoUrl}</div>
+                <div className="text-xs font-bold text-red-400 group-hover/vid:text-red-300">Watch Product Video</div>
+                <div className="text-[10px] text-red-700 truncate">{product.videoUrl}</div>
               </div>
-              <svg className="ml-auto shrink-0 text-red-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="ml-auto shrink-0 text-red-700" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
             </a>
@@ -429,31 +431,28 @@ function ProductModal({
           {/* Qty + Add to Cart */}
           {product.stock !== 0 && (
             <div className="flex items-center gap-3 pt-1">
-              <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+              <div className="flex items-center gap-1 border border-gray-700 rounded-xl p-1">
                 <button
                   onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-base font-bold hover:bg-gray-50 transition-colors"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold text-white hover:bg-white/10 transition-colors"
                 >−</button>
-                <span className="w-8 text-center text-sm font-bold">{qty}</span>
+                <span className="w-8 text-center text-sm font-bold text-white">{qty}</span>
                 <button
                   onClick={() => setQty(q => q + 1)}
-                  className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-base font-bold hover:bg-gray-50 transition-colors"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold text-white hover:bg-white/10 transition-colors"
                 >+</button>
               </div>
-              <button
+              <AnimatedAddToCartButton
                 onClick={handleAddToCart}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                  added
-                    ? "bg-green-500 text-white scale-[0.97]"
-                    : "bg-accent text-white hover:bg-accent-dark active:scale-[0.97]"
-                }`}
-              >
-                {added ? "✓ Added to Cart!" : "Add to Cart"}
-              </button>
+                added={added}
+                size="lg"
+                className="flex-1"
+                idleLabel={`Add to Cart · ${formatCurrency(product.sellingPrice)}`}
+              />
             </div>
           )}
           {product.stock === 0 && (
-            <button disabled className="w-full py-2.5 rounded-xl text-sm font-bold bg-gray-200 text-gray-400 cursor-not-allowed">
+            <button disabled className="w-full py-2.5 rounded-full text-sm font-bold bg-gray-800 text-gray-500 cursor-not-allowed">
               Out of Stock
             </button>
           )}
@@ -583,17 +582,14 @@ function ProductCard({ product, business }: { product: Product; business: Busine
                 className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center text-sm font-bold hover:bg-gray-200 transition-colors"
               >+</button>
             </div>
-            <button
+            <AnimatedAddToCartButton
               onClick={handleAddToCart}
+              added={added}
               disabled={product.stock === 0}
-              className={`w-full mt-2 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                added ? "bg-green-500 text-white" :
-                product.stock === 0 ? "bg-gray-200 text-gray-400 cursor-not-allowed" :
-                "bg-accent text-white hover:bg-accent-dark"
-              }`}
-            >
-              {added ? "✓ Added" : product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-            </button>
+              size="sm"
+              addedLabel="✓ Added"
+              className="w-full mt-2"
+            />
           </div>
         </div>
       </div>

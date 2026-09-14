@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Search, ShoppingCart, Heart, User, X, LayoutDashboard, Package, LogOut } from "lucide-react";
+import { Home, Search, ShoppingCart, Heart, User, X, LayoutDashboard, Package, LogOut, Wallet } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useMobileSearch } from "@/context/MobileSearchContext";
@@ -103,6 +103,16 @@ export function MobileBottomNav() {
                 <Package size={18} className="text-gray-400" />
                 <span className="font-medium">My Orders</span>
               </Link>
+              {user.role === "customer" && (
+                <Link
+                  href="/wallet"
+                  onClick={() => setAccountOpen(false)}
+                  className="flex items-center gap-4 px-6 py-3.5 text-gray-700 active:bg-gray-50"
+                >
+                  <Wallet size={18} className="text-gray-400" />
+                  <span className="font-medium">Wallet</span>
+                </Link>
+              )}
 
               <div className="mx-6 my-1 border-t border-gray-100" />
 

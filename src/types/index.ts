@@ -26,6 +26,8 @@ export interface Business {
   description: string;
   isActive: boolean;
   displayOrder?: number;
+  /** When true, purchases from this business earn wallet cashback and can redeem wallet balance. */
+  walletEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -107,6 +109,7 @@ export interface Order {
   updatedAt: string;
   updatedBy?: string;
   completedAt?: string;   // set when status reaches payment_success (used for revenue attribution)
+  walletRedeemed?: number; // amount of wallet balance applied to reduce this order's amount due
 }
 
 export interface CartItem {
@@ -161,6 +164,33 @@ export interface Loan {
   updatedAt: string;
   createdBy: string;
   updatedBy?: string;
+}
+
+/**
+ * Wallet cashback — customers earn credit only on wallet-enabled business purchases
+ * (currently: Vinks Crackers). Credits become redeemable only within the configured
+ * Diwali-to-Diwali validity window (see src/lib/wallet.ts).
+ */
+export type WalletTxType = "credit" | "debit" | "refund" | "adjustment";
+
+export interface WalletTransaction {
+  id: string;
+  userId: string;
+  businessId?: string;
+  orderId?: string;
+  invoiceId?: string;
+  type: WalletTxType;
+  /** Positive = added to wallet, negative = deducted from wallet. */
+  amount: number;
+  /** For "credit" entries: the order total that generated this cashback. */
+  purchaseAmount?: number;
+  balanceAfter: number;
+  /** Redemption window for this credit — set on "credit" entries. */
+  validFrom?: string;
+  validTo?: string;
+  note?: string;
+  createdBy: string; // "system" or the admin/partner userId who made a manual adjustment
+  createdAt: string;
 }
 
 export interface HistoryRecord {

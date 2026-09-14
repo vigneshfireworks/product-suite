@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
-import { Search, Users, UserCheck, Handshake, Ghost, ShoppingCart, Settings2, X, ToggleLeft, ToggleRight, Lock } from "lucide-react";
+import { Search, Users, UserCheck, Handshake, Ghost, ShoppingCart, Settings2, X, ToggleLeft, ToggleRight, Lock, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import { SortTh, useTableSort } from "@/components/ui/SortTh";
 import { usePagination, Pagination } from "@/components/ui/Pagination";
 import { Business } from "@/types";
+import { WalletAdjustModal } from "@/components/wallet/WalletAdjustModal";
 
 interface UserRow {
   id: string; name: string; email: string; phone: string; role: string;
@@ -219,6 +220,7 @@ export default function AdminUsers() {
   const [search, setSearch]         = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [accessUser, setAccessUser] = useState<UserRow | null>(null);
+  const [walletUser, setWalletUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${token}` };
@@ -384,16 +386,27 @@ export default function AdminUsers() {
                     {u.lastLogin ? formatDateTime(u.lastLogin) : <span className="text-gray-300">Never</span>}
                   </td>
                   <td className="px-5 py-4 text-gray-500 text-xs hidden lg:table-cell">{formatDateTime(u.createdAt)}</td>
-                  {/* Business Access button — only meaningful for customers/admins, not partners */}
+                  {/* Business Access + Wallet buttons — only meaningful for customers/admins, not partners */}
                   <td className="px-5 py-4 text-right">
                     {u.role !== "partner" ? (
-                      <button
-                        onClick={() => setAccessUser(u)}
-                        title="Manage business access"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-purple-100 text-purple-600 hover:bg-purple-50 transition-colors">
-                        <Settings2 size={12} />
-                        <span className="hidden sm:inline">Access</span>
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        {u.role === "customer" && (
+                          <button
+                            onClick={() => setWalletUser(u)}
+                            title="Manage wallet balance"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-amber-100 text-amber-600 hover:bg-amber-50 transition-colors">
+                            <Wallet size={12} />
+                            <span className="hidden sm:inline">Wallet</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setAccessUser(u)}
+                          title="Manage business access"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-purple-100 text-purple-600 hover:bg-purple-50 transition-colors">
+                          <Settings2 size={12} />
+                          <span className="hidden sm:inline">Access</span>
+                        </button>
+                      </div>
                     ) : (
                       <span className="text-gray-300 text-xs">—</span>
                     )}
@@ -412,6 +425,16 @@ export default function AdminUsers() {
           user={accessUser}
           token={token}
           onClose={() => setAccessUser(null)}
+        />
+      )}
+
+      {/* Wallet Modal */}
+      {walletUser && token && (
+        <WalletAdjustModal
+          userId={walletUser.id}
+          userName={walletUser.name}
+          token={token}
+          onClose={() => setWalletUser(null)}
         />
       )}
     </div>

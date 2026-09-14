@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Edit, Trash2, Eye, Upload, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, Upload, X, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Business } from "@/types";
 import { Button } from "@/components/ui/Button";
@@ -21,7 +21,7 @@ export default function AdminBusinesses() {
   const [search, setSearch]         = useState("");
   const [modalOpen, setModalOpen]   = useState(false);
   const [editBiz, setEditBiz]       = useState<Business | null>(null);
-  const [form, setForm]             = useState({ name: "", category: "retail", description: "", logo: "", displayOrder: "" });
+  const [form, setForm]             = useState({ name: "", category: "retail", description: "", logo: "", displayOrder: "", walletEnabled: false });
   const [saving, setSaving]         = useState(false);
   const [uploading, setUploading]   = useState(false);
   const logoFileRef                 = useRef<HTMLInputElement>(null);
@@ -35,8 +35,8 @@ export default function AdminBusinesses() {
     setLoading(false);
   };
 
-  const openCreate = () => { setEditBiz(null); setForm({ name: "", category: "retail", description: "", logo: "", displayOrder: "" }); setModalOpen(true); };
-  const openEdit   = (b: Business) => { setEditBiz(b); setForm({ name: b.name, category: b.category, description: b.description, logo: b.logo || "", displayOrder: b.displayOrder != null ? String(b.displayOrder) : "" }); setModalOpen(true); };
+  const openCreate = () => { setEditBiz(null); setForm({ name: "", category: "retail", description: "", logo: "", displayOrder: "", walletEnabled: false }); setModalOpen(true); };
+  const openEdit   = (b: Business) => { setEditBiz(b); setForm({ name: b.name, category: b.category, description: b.description, logo: b.logo || "", displayOrder: b.displayOrder != null ? String(b.displayOrder) : "", walletEnabled: !!b.walletEnabled }); setModalOpen(true); };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -207,6 +207,24 @@ export default function AdminBusinesses() {
               onChange={handleLogoUpload}
             />
           </div>
+          {/* ── Wallet cashback toggle ───────────────────────────── */}
+          <button
+            type="button"
+            onClick={() => setForm(f => ({ ...f, walletEnabled: !f.walletEnabled }))}
+            className="w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-colors text-left"
+            style={{ borderColor: form.walletEnabled ? "#FFC43F" : "#e5e7eb", background: form.walletEnabled ? "#FFFDF5" : "#fafafa" }}
+          >
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: form.walletEnabled ? "#FFC43F" : "#e5e7eb" }}>
+              <Wallet size={16} className={form.walletEnabled ? "text-white" : "text-gray-500"} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-brand-dark">Wallet Cashback</p>
+              <p className="text-xs text-gray-400">Customers earn 2% wallet credit on purchases from this business</p>
+            </div>
+            <div className="w-10 h-6 rounded-full flex-shrink-0 relative transition-colors" style={{ background: form.walletEnabled ? "#FFC43F" : "#d1d5db" }}>
+              <div className="w-4 h-4 bg-white rounded-full absolute top-1 transition-all" style={{ left: form.walletEnabled ? "22px" : "4px" }} />
+            </div>
+          </button>
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSave} loading={saving} className="flex-1">{editBiz ? "Update Business" : "Create Business"}</Button>
             <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Button>

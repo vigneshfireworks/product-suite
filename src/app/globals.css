@@ -315,9 +315,11 @@ h1, h2, h3, h4, h5, h6 {
   to   { opacity: 1; }
 }
 .prod-modal-card {
-  background: #fff;
+  position: relative;
+  background: #101012;
+  color: #fff;
   border-radius: 20px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
   max-width: 420px;
   width: 100%;
   max-height: 90vh;
@@ -336,6 +338,388 @@ h1, h2, h3, h4, h5, h6 {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ════════════════════════════════════════════════════════════════
+   Add to Cart button — "Rocket Launch" reference video: dark navy
+   pill button with a sky window above it. On click a rocket launches
+   up out of frame, then returns on a parachute and descends back
+   into the button, landing as a "+1" bump and a checkmark.
+════════════════════════════════════════════════════════════════ */
+
+.cart-btn {
+  isolation: isolate;
+  background: #292a4a !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+}
+.cart-btn:hover:not(:disabled) { background: #33345c !important; }
+.cart-btn:disabled {
+  background: #3a3a3f !important;
+  color: #9ca3af !important;
+}
+
+/* the sky window: sits just above the button, hidden until launch */
+.cart-btn__sky {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 100%;
+  margin-bottom: 8px;
+  height: 46px;
+  border-radius: 14px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(180deg, #1a1e37 0%, #232235 100%);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+.cart-btn__sky::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 15% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40% 60%, #fff, transparent),
+    radial-gradient(1px 1px at 65% 25%, #fff, transparent),
+    radial-gradient(1px 1px at 85% 55%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 92% 20%, #fff, transparent);
+  opacity: 0.5;
+}
+.cart-btn__sky.cart-btn__run {
+  animation: cart-sky-show 2.2s ease-in-out;
+}
+@keyframes cart-sky-show {
+  0%, 4%   { opacity: 0; }
+  8%, 90%  { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+.cart-btn__rocket {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  transform: translate(-50%, 0) rotate(0deg) scale(0.7);
+  opacity: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+.cart-btn__run .cart-btn__rocket {
+  animation: cart-rocket-launch 2.2s cubic-bezier(0.4, 0, 0.7, 1);
+}
+@keyframes cart-rocket-launch {
+  0%    { bottom: 4%;  opacity: 0; transform: translate(-50%,0) rotate(0deg) scale(0.7); }
+  6%    { opacity: 1; }
+  34%   { bottom: 88%; opacity: 1; transform: translate(-50%,0) rotate(-8deg) scale(0.85); }
+  40%   { bottom: 100%; opacity: 0; transform: translate(-50%,0) rotate(-8deg) scale(0.7); }
+  100%  { opacity: 0; }
+}
+
+.cart-btn__parachute {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  transform: translate(-50%, 0) rotate(0deg) scale(0.85);
+  opacity: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+.cart-btn__run .cart-btn__parachute {
+  animation: cart-parachute-descend 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes cart-parachute-descend {
+  0%, 39%  { top: -10%;  opacity: 0; transform: translate(-50%,0) rotate(0deg) scale(0.85); }
+  44%      { top: 4%;    opacity: 1; transform: translate(-50%,0) rotate(4deg) scale(0.9); }
+  62%      { top: 46%;   transform: translate(-50%,0) rotate(-4deg) scale(0.95); }
+  84%      { top: 84%;   opacity: 1; transform: translate(-50%,0) rotate(3deg) scale(1); }
+  92%      { top: 96%;   opacity: 0; transform: translate(-50%,0) rotate(0deg) scale(0.8); }
+  100%     { opacity: 0; }
+}
+
+.cart-btn__bump {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* idle content (cart icon + label) vs the two transient states, all
+   crossfaded by phase rather than a single timeline so the wording
+   reads clearly: idle → "In Flight" → "✓ In Cart" → idle            */
+.cart-btn__content { display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s ease; }
+.cart-btn__content--hidden { opacity: 0; position: absolute; }
+
+.cart-btn__flying-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85em;
+  color: #9ca0c9;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.cart-btn__flying-label--show { opacity: 1; }
+
+.cart-btn__landed-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.cart-btn__landed-label--show { opacity: 1; }
+
+.cart-btn__badge {
+  position: absolute;
+  top: -8px;
+  left: 14%;
+  background: #f7a422;
+  color: #1a1a2e;
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.15s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cart-btn__badge--show { opacity: 1; transform: scale(1); }
+
+/* ════════════════════════════════════════════════════════════════
+   Popup Add to Cart button — video 3 (AXIS) reference: white pill
+   with coloured label at rest; on click a solid colour fill sweeps
+   left→right with a little truck riding the leading edge, then
+   settles into a white "✓ Added" checkmark before resetting.
+════════════════════════════════════════════════════════════════ */
+
+.tcart-btn {
+  --tcart-color: #cc274a; /* default "original" red from the reference */
+  isolation: isolate;
+  background: #f2f4f2;
+  color: var(--tcart-color);
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.15s ease;
+}
+.tcart-btn:disabled { background: #3a3a3f; color: #71717a; cursor: not-allowed; }
+
+.tcart-btn__track {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.tcart-btn__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--tcart-color);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.tcart-btn__track--run .tcart-btn__fill {
+  animation: tcart-fill-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes tcart-fill-sweep {
+  0%      { transform: scaleX(0); }
+  38%, 78% { transform: scaleX(1); }
+  100%    { transform: scaleX(1); }
+}
+
+.tcart-btn__truck {
+  position: absolute;
+  top: 50%;
+  left: -10%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+}
+.tcart-btn__track--run .tcart-btn__truck {
+  animation: tcart-truck-drive 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes tcart-truck-drive {
+  0%   { left: -10%; opacity: 0; }
+  6%   { opacity: 1; }
+  36%  { left: 98%;  opacity: 1; }
+  42%  { left: 112%; opacity: 0; }
+  100% { left: 112%; opacity: 0; }
+}
+
+.tcart-btn__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  transition: opacity 0.2s ease;
+}
+.tcart-btn__content--hidden { opacity: 0; }
+
+.tcart-btn__added {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.25s ease 0.05s;
+  pointer-events: none;
+}
+.tcart-btn__added--show { opacity: 1; }
+
+/* ════════════════════════════════════════════════════════════════
+   Product popup — video 3 (AXIS) reference: dark card, tap-to-open
+   "flood" colour reveal washing out from the tap point.
+════════════════════════════════════════════════════════════════ */
+.prod-modal-flood {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at 72% 45%, var(--flood-color, #cc274a), transparent 68%);
+  opacity: 0.35;
+  clip-path: circle(0% at 72% 45%);
+  animation: prod-modal-flood-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes prod-modal-flood-in {
+  from { clip-path: circle(0% at 72% 45%); }
+  to   { clip-path: circle(85% at 72% 45%); }
+}
+.prod-modal-card > *:not(.prod-modal-flood) {
+  position: relative;
+  z-index: 1;
+}
+
+/* the discount badge + price get a quick highlight flash as the modal
+   opens, drawing the eye the same way the reference demo's glow does */
+.prod-modal-highlight {
+  animation: prod-modal-highlight-flash 0.9s ease-out;
+}
+@keyframes prod-modal-highlight-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 196, 63, 0.6); }
+  60%  { box-shadow: 0 0 0 6px rgba(255, 196, 63, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 196, 63, 0); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Place Order — items pack into a box, box flies into the truck,
+   truck drives off. Every part shares ONE clock (the animation's
+   own % timeline) so the sequence stays in sync end to end.
+════════════════════════════════════════════════════════════════ */
+
+.pack-scene {
+  --pack-dur: 3.4s;
+  overflow: visible;
+}
+
+.pack-item {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  animation: pack-item-fall var(--pack-dur) ease-in forwards;
+}
+.pack-item--2 { animation-delay: 0.08s; }
+.pack-item--3 { animation-delay: 0.16s; }
+@keyframes pack-item-fall {
+  0%     { opacity: 0; transform: translateY(-6px) scale(1); }
+  4%     { opacity: 1; }
+  16%    { opacity: 1; transform: translateY(48px) scale(0.9); }
+  20%    { opacity: 0; transform: translateY(54px) scale(0.6); }
+  100%   { opacity: 0; }
+}
+
+.pack-box {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pack-box-life var(--pack-dur) ease-in-out forwards;
+}
+@keyframes pack-box-life {
+  0%, 62%  { opacity: 1; transform: scale(1); }
+  /* the sealed box (pack-box-fly) takes over from here */
+  66%      { opacity: 0; transform: scale(0.9); }
+  100%     { opacity: 0; }
+}
+.pack-box__flap {
+  transform-box: fill-box;
+  animation: pack-box-flap-close var(--pack-dur) cubic-bezier(0.36, 0, 0.66, 1) forwards;
+}
+.pack-box__flap--left  { transform-origin: 0% 100%; }
+.pack-box__flap--right { transform-origin: 100% 100%; }
+@keyframes pack-box-flap-close {
+  0%, 18%  { transform: rotate(0deg); }
+  32%      { transform: rotate(90deg); }
+  100%     { transform: rotate(90deg); }
+}
+
+/* the now-sealed box: invisible until it seals, then flies right into
+   the truck's cargo door, shrinking as it "enters" */
+.pack-box-fly {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  animation: pack-box-fly-move var(--pack-dur) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes pack-box-fly-move {
+  0%, 62%  { opacity: 0; transform: translate(158px, 130px) scale(1); }
+  64%      { opacity: 1; transform: translate(158px, 130px) scale(1); }
+  80%      { opacity: 1; transform: translate(266px, 138px) scale(0.55); }
+  88%      { opacity: 0; transform: translate(280px, 138px) scale(0.3); }
+  100%     { opacity: 0; }
+}
+
+.pack-truck {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: pack-truck-drive var(--pack-dur) ease-in-out forwards;
+}
+@keyframes pack-truck-drive {
+  0%, 36%   { transform: translateX(180px); opacity: 1; }
+  56%       { transform: translateX(0px); }
+  86%       { transform: translateX(0px); }
+  100%      { transform: translateX(-420px); }
+}
+.pack-truck__door {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: pack-truck-door var(--pack-dur) ease-in-out forwards;
+}
+@keyframes pack-truck-door {
+  0%, 58%  { transform: scaleY(0); opacity: 0; }
+  64%      { transform: scaleY(1); opacity: 1; }
+  84%      { transform: scaleY(1); opacity: 1; }
+  92%      { transform: scaleY(0); opacity: 0; }
+  100%     { transform: scaleY(0); opacity: 0; }
+}
+.pack-truck__beam {
+  transform-box: fill-box;
+  animation: pack-truck-beam var(--pack-dur) ease-in-out forwards;
+}
+@keyframes pack-truck-beam {
+  0%, 34%  { opacity: 0.9; }
+  40%, 82% { opacity: 0.15; }
+  90%      { opacity: 0.9; }
+  100%     { opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-item, .pack-box, .pack-box__flap, .pack-box-fly, .pack-truck, .pack-truck__door, .pack-truck__beam {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Respect user's motion preference */
 @media (prefers-reduced-motion: reduce) {
   .spark-p, .crackers-flash, .env-flap-g, .env-letter-g,
@@ -347,5 +731,20 @@ h1, h2, h3, h4, h5, h6 {
   .prod-img-zone .prod-placeholder {
     transition: none !important;
     transform: none !important;
+  }
+  .cart-btn__sky,
+  .cart-btn__rocket,
+  .cart-btn__parachute {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .tcart-btn__track--run .tcart-btn__fill,
+  .tcart-btn__track--run .tcart-btn__truck,
+  .prod-modal-flood {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .prod-modal-highlight {
+    animation: none !important;
   }
 }

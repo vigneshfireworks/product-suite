@@ -2,11 +2,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
+import { Heart, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Product } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import { AnimatedAddToCartButton } from "@/components/ui/AnimatedAddToCartButton";
 
 export default function WatchlistPage() {
   const { watchlist, removeFromWatchlist, addToCart } = useCart();
@@ -151,17 +152,13 @@ export default function WatchlistPage() {
                       </div>
 
                       {/* Add to Cart button */}
-                      <button
+                      <AnimatedAddToCartButton
                         onClick={() => handleAddToCart(item.productId)}
-                        className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
-                        style={{
-                          background: wasAdded ? "#22c55e" : "#FFC43F",
-                          color: "white",
-                        }}
-                      >
-                        <ShoppingCart size={13} />
-                        {wasAdded ? "Added!" : "Add to Cart"}
-                      </button>
+                        added={wasAdded}
+                        sizeClassName="py-2 rounded-xl text-xs"
+                        addedLabel="✓ Added!"
+                        className="w-full"
+                      />
                     </div>
                   </div>
                 );

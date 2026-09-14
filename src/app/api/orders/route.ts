@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { redis, keys } from "@/lib/redis";
 import { requireAuth } from "@/lib/apiAuth";
 import { recordHistory } from "@/lib/history";
-import { Order, Product, OrderItem } from "@/types";
+import { Order, Product, OrderItem, Business } from "@/types";
 import { generateId } from "@/lib/utils";
+import { redeemWalletForOrder } from "@/lib/wallet";
 
 // Adjust stock for each item: delta = -qty to reduce (on order), +qty to restore (on cancel)
 async function adjustStock(items: OrderItem[], delta: number) {
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const body = await req.json();
-  const { businessId, items, totalAmount, paymentMode, deliveryAddress, invoiceId, transactionId } = body;
+  const { businessId, items, totalAmount, paymentMode, deliveryAddress, invoiceId, transactionId, walletRedeemed } = body;
   if (!businessId || !items || !totalAmount || !deliveryAddress) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -54,6 +55,25 @@ export async function POST(req: NextRequest) {
   // invoiceId is shared across all orders placed in the same checkout session.
   // If none is provided (legacy), fall back to the order's own id.
   const resolvedInvoiceId = invoiceId || id;
+
+  // Wallet redemption — only allowed for wallet-enabled businesses, within the
+  // redeemable window, and capped at the customer's current balance.
+  let redeemedAmount = 0;
+  if (walletRedeemed && Number(walletRedeemed) > 0) {
+    const business = await redis.get<Business>(keys.business(businessId));
+    if (business?.walletEnabled) {
+      const tx = await redeemWalletForOrder({
+        userId: auth.userId,
+        businessId,
+        orderId: id,
+        invoiceId: resolvedInvoiceId,
+        amount: Number(walletRedeemed),
+        createdBy: auth.userId,
+      });
+      redeemedAmount = tx ? Math.abs(tx.amount) : 0;
+    }
+  }
+
   const order: Order = {
     id,
     invoiceId: resolvedInvoiceId,
@@ -67,6 +87,7 @@ export async function POST(req: NextRequest) {
     deliveryAddress,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    walletRedeemed: redeemedAmount || undefined,
   };
 
   await redis.set(keys.order(id), order);

@@ -41,6 +41,9 @@ export default function ProfilePage() {
         </div>
         <div className="mt-6 flex gap-3">
           <Button variant="outline" onClick={() => router.push("/orders")}>My Orders</Button>
+          {user.role === "customer" && (
+            <Button variant="outline" onClick={() => router.push("/wallet")}>Wallet</Button>
+          )}
           <Button variant="danger" onClick={() => { logout(); router.push("/"); }}>Logout</Button>
         </div>
       </div>

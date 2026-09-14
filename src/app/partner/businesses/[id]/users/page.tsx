@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { Search, Users, ShoppingCart, DollarSign } from "lucide-react";
+import { Search, Users, ShoppingCart, DollarSign, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { SortTh, useTableSort } from "@/components/ui/SortTh";
 import { usePagination, Pagination } from "@/components/ui/Pagination";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { WalletAdjustModal } from "@/components/wallet/WalletAdjustModal";
 
 interface Order { id: string; userId: string; totalAmount: number; status: string; createdAt: string; }
 interface UserRow { id: string; name: string; email: string; phone: string; orderCount: number; totalSpent: number; lastOrder: string; }
@@ -16,6 +17,7 @@ export default function BusinessUsers() {
   const [rows, setRows]       = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState("");
+  const [walletUser, setWalletUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${token}` };
@@ -115,15 +117,16 @@ export default function BusinessUsers() {
                 <SortTh label="Orders"       colKey="orderCount" current={sortKey} dir={sortDir} onToggle={toggle} className="px-5" align="right" />
                 <SortTh label="Total Spent"  colKey="totalSpent" current={sortKey} dir={sortDir} onToggle={toggle} className="px-5" align="right" />
                 <SortTh label="Last Order"   colKey="lastOrder"  current={sortKey} dir={sortDir} onToggle={toggle} className="px-5 hidden lg:table-cell" />
+                <th className="px-5 py-3.5 text-xs font-semibold text-gray-400 text-right">Wallet</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 [...Array(5)].map((_, i) => (
-                  <tr key={i}><td colSpan={5} className="px-5 py-4"><div className="h-5 bg-gray-100 rounded animate-pulse" /></td></tr>
+                  <tr key={i}><td colSpan={6} className="px-5 py-4"><div className="h-5 bg-gray-100 rounded animate-pulse" /></td></tr>
                 ))
               ) : sorted.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-12 text-gray-400">No customers yet</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-gray-400">No customers yet</td></tr>
               ) : paged.map(u => (
                 <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-4">
@@ -147,6 +150,15 @@ export default function BusinessUsers() {
                   <td className="px-5 py-4 text-xs text-gray-500 hidden lg:table-cell">
                     {u.lastOrder ? formatDateTime(u.lastOrder) : "—"}
                   </td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => setWalletUser(u)}
+                      title="Manage wallet balance"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-amber-100 text-amber-600 hover:bg-amber-50 transition-colors">
+                      <Wallet size={12} />
+                      <span className="hidden sm:inline">Wallet</span>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -154,6 +166,16 @@ export default function BusinessUsers() {
         </div>
       </div>
       <Pagination page={page} totalPages={totalPages} total={total} start={start} pageSize={pageSize} onPageChange={setPage} />
+
+      {/* Wallet Modal */}
+      {walletUser && token && (
+        <WalletAdjustModal
+          userId={walletUser.id}
+          userName={walletUser.name}
+          token={token}
+          onClose={() => setWalletUser(null)}
+        />
+      )}
     </div>
   );
 }

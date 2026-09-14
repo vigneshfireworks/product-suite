@@ -3,10 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { Product } from "@/types";
+import { Product, Business } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { X, CheckCircle, Phone, FileText, ShoppingBag } from "lucide-react";
+import { OrderPackingAnimation } from "@/components/ui/OrderPackingAnimation";
+import { X, CheckCircle, Phone, FileText, ShoppingBag, Wallet } from "lucide-react";
 
 /* ── Per-business order result ─────────────────────────────────── */
 interface OrderResult {
@@ -15,6 +16,7 @@ interface OrderResult {
   businessCategory: string;
   invoiceId: string;
   totalAmount: number;
+  walletRedeemed?: number;
   partnerName?: string;
   partnerPhone?: string;
 }
@@ -154,8 +156,14 @@ function SuccessModal({
                     <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Amount Due</p>
                     <p className="text-[10px] text-gray-400">Pay on delivery · Cash</p>
                   </div>
-                  <span className="text-lg font-bold text-accent">{formatCurrency(r.totalAmount)}</span>
+                  <span className="text-lg font-bold text-accent">{formatCurrency(r.totalAmount - (r.walletRedeemed || 0))}</span>
                 </div>
+                {!!r.walletRedeemed && (
+                  <div className="flex items-center justify-between text-xs px-1">
+                    <span className="text-gray-400 flex items-center gap-1"><Wallet size={11} /> Wallet balance used</span>
+                    <span className="font-semibold text-green-600">− {formatCurrency(r.walletRedeemed)}</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -169,7 +177,7 @@ function SuccessModal({
                   <p className="text-[10px] text-white/40">Across all {results.length} vendors</p>
                 </div>
                 <span className="text-xl font-bold text-accent">
-                  {formatCurrency(results.reduce((s, r) => s + r.totalAmount, 0))}
+                  {formatCurrency(results.reduce((s, r) => s + r.totalAmount - (r.walletRedeemed || 0), 0))}
                 </span>
               </div>
             </div>
@@ -204,12 +212,19 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const [products,    setProducts]    = useState<Record<string, Product>>({});
+  const [businesses,  setBusinesses]  = useState<Record<string, Business>>({});
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletRedeemableNow, setWalletRedeemableNow] = useState(false);
+  const [walletValidFrom, setWalletValidFrom] = useState("");
+  const [walletValidTo, setWalletValidTo] = useState("");
+  const [useWallet,   setUseWallet]   = useState(true);
   const [loading,     setLoading]     = useState(true);
   const [submitting,  setSubmitting]  = useState(false);
   const [address,     setAddress]     = useState("");
   const paymentMode = "cash"; // Admin/partner updates payment mode via invoice
   const [orderResults, setOrderResults] = useState<OrderResult[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPacking, setShowPacking] = useState(false);
 
   useEffect(() => {
     if (!user) { router.push("/login"); return; }
@@ -227,6 +242,23 @@ export default function CheckoutPage() {
       if (res.ok) fetched[id] = await res.json();
     }));
     setProducts(fetched);
+
+    // Load business wallet-eligibility + the customer's current wallet balance
+    const bizIds = Array.from(new Set(cart.map(c => c.businessId)));
+    const [bizResults, walletRes] = await Promise.all([
+      Promise.all(bizIds.map(id => fetch(`/api/businesses/${id}`).then(r => r.ok ? r.json() : null).catch(() => null))),
+      fetch("/api/wallet", { headers: { Authorization: `Bearer ${token}` } }).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    const bizMap: Record<string, Business> = {};
+    bizResults.forEach((b: Business | null) => { if (b?.id) bizMap[b.id] = b; });
+    setBusinesses(bizMap);
+    if (walletRes) {
+      setWalletBalance(walletRes.balance || 0);
+      setWalletRedeemableNow(!!walletRes.isRedeemableNow);
+      setWalletValidFrom(walletRes.validFrom);
+      setWalletValidTo(walletRes.validTo);
+    }
+
     setLoading(false);
   };
 
@@ -235,10 +267,23 @@ export default function CheckoutPage() {
     return sum + (p ? p.sellingPrice * item.quantity : 0);
   }, 0);
 
+  // Portion of the cart that's eligible to redeem wallet balance against (wallet-enabled businesses only)
+  const walletEligibleSubtotal = cart.reduce((sum, item) => {
+    const p = products[item.productId];
+    if (!p || !businesses[item.businessId]?.walletEnabled) return sum;
+    return sum + p.sellingPrice * item.quantity;
+  }, 0);
+  const canUseWallet = walletBalance > 0 && walletRedeemableNow && walletEligibleSubtotal > 0;
+  const walletApplyPreview = canUseWallet && useWallet ? Math.min(walletBalance, walletEligibleSubtotal) : 0;
+  const payableTotal = cartTotal - walletApplyPreview;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) return;
     setSubmitting(true);
+    setShowPacking(true);
+    const startedAt = Date.now();
+    const PACK_ANIM_MS = 3400; // keep in sync with --pack-dur in globals.css
 
     // Group cart by business
     const byBusiness: Record<string, typeof cart> = {};
@@ -248,6 +293,7 @@ export default function CheckoutPage() {
     });
 
     const results: OrderResult[] = [];
+    let walletRemaining = useWallet ? walletBalance : 0;
 
     try {
       for (const [businessId, items] of Object.entries(byBusiness)) {
@@ -262,6 +308,13 @@ export default function CheckoutPage() {
         }));
         const total = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
 
+        // Apply wallet balance for this business only if it's wallet-enabled
+        let walletRedeemed = 0;
+        if (walletRemaining > 0 && businesses[businessId]?.walletEnabled) {
+          walletRedeemed = Math.min(walletRemaining, total);
+          walletRemaining -= walletRedeemed;
+        }
+
         // Place order
         await fetch("/api/orders", {
           method: "POST",
@@ -274,6 +327,7 @@ export default function CheckoutPage() {
             transactionId: undefined,
             deliveryAddress: address,
             invoiceId,
+            walletRedeemed: walletRedeemed || undefined,
           }),
         });
 
@@ -291,14 +345,26 @@ export default function CheckoutPage() {
           businessCategory: biz.category ?? "other",
           invoiceId,
           totalAmount: total,
+          walletRedeemed: walletRedeemed || undefined,
           partnerName:  partner?.name,
           partnerPhone: partner?.phone,
         });
       }
 
       clearCart(); // Clear entire cart in one call after all orders are placed
+
+      // Let the packing/truck animation finish playing even if the API was fast
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < PACK_ANIM_MS) {
+        await new Promise(resolve => setTimeout(resolve, PACK_ANIM_MS - elapsed));
+      }
+
       setOrderResults(results);
+      setShowPacking(false);
       setShowSuccess(true);
+    } catch (err) {
+      setShowPacking(false);
+      console.error("Failed to place order:", err);
     } finally {
       setSubmitting(false);
     }
@@ -352,6 +418,49 @@ export default function CheckoutPage() {
               <div className="border-t pt-3 flex justify-between font-bold text-brand-dark">
                 <span>Total</span><span>{formatCurrency(cartTotal)}</span>
               </div>
+
+              {/* Wallet balance application */}
+              {walletBalance > 0 && walletEligibleSubtotal > 0 && (
+                <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
+                  {canUseWallet ? (
+                    <>
+                      <label className="flex items-start gap-2.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={useWallet}
+                          onChange={e => setUseWallet(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 accent-accent flex-shrink-0"
+                        />
+                        <span className="text-xs text-gray-600 flex-1">
+                          <span className="flex items-center gap-1 font-semibold text-brand-dark">
+                            <Wallet size={13} className="text-accent" /> Use wallet balance
+                          </span>
+                          <span className="text-gray-400">{formatCurrency(walletBalance)} available</span>
+                        </span>
+                      </label>
+                      {walletApplyPreview > 0 && (
+                        <div className="flex justify-between text-xs mt-2 text-green-600 font-semibold">
+                          <span>Wallet applied</span><span>− {formatCurrency(walletApplyPreview)}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-[11px] text-gray-400 flex items-start gap-1.5">
+                      <Wallet size={13} className="text-gray-300 flex-shrink-0 mt-0.5" />
+                      You have {formatCurrency(walletBalance)} in wallet balance — redeemable
+                      {walletValidFrom ? ` from ${new Date(walletValidFrom).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}` : ""}
+                      {walletValidTo ? ` to ${new Date(walletValidTo).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}` : ""}.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {walletApplyPreview > 0 && (
+                <div className="flex justify-between font-bold text-brand-dark pt-2 mt-1 border-t">
+                  <span>Amount Payable</span><span>{formatCurrency(payableTotal)}</span>
+                </div>
+              )}
+
               <Button type="submit" className="w-full mt-4" size="lg" loading={submitting}>
                 Place Order
               </Button>
@@ -359,6 +468,9 @@ export default function CheckoutPage() {
           </div>
         </form>
       </div>
+
+      {/* ── Packing / truck animation while the order is being placed ── */}
+      {showPacking && <OrderPackingAnimation />}
 
       {/* ── Success modal ── */}
       {showSuccess && (

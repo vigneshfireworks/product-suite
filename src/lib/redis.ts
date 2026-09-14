@@ -37,4 +37,7 @@ export const keys = {
   aboutContent: () => `about:content`,
   role: (id: string) => `role:${id}`,
   roles: () => `roles`,
+  walletBalance: (userId: string) => `wallet:balance:${userId}`,
+  walletTx: (id: string) => `wallet:tx:${id}`,
+  walletTxsByUser: (userId: string) => `wallet:txs:user:${userId}`,
 };
