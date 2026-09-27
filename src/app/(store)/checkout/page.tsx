@@ -207,8 +207,8 @@ function SuccessModal({
 
 /* ── Checkout Page ─────────────────────────────────────────────── */
 export default function CheckoutPage() {
-  const { cart, clearCart } = useCart();
-  const { user, token } = useAuth();
+  const { cart, clearCart, updateCartQty, removeFromCart } = useCart();
+  const { user, token, login } = useAuth();
   const router = useRouter();
 
   const [products,    setProducts]    = useState<Record<string, Product>>({});
@@ -221,15 +221,43 @@ export default function CheckoutPage() {
   const [loading,     setLoading]     = useState(true);
   const [submitting,  setSubmitting]  = useState(false);
   const [address,     setAddress]     = useState("");
+  const [customerName,  setCustomerName]  = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+
+  useEffect(() => {
+    if (customerPhone.length === 10) {
+      handlePhoneLookup(customerPhone);
+    }
+  }, [customerPhone]);
+
+  const handlePhoneLookup = async (phone: string) => {
+    try {
+      const res = await fetch("/api/auth/check-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+
+      if (data.exists && data.token && data.user) {
+        // Silent login
+        login(data.token, data.user);
+        // Auto-fill profile
+        setCustomerName(data.user.name || "");
+        setAddress(data.user.address || "");
+      }
+    } catch (err) {
+      console.error("Phone lookup failed:", err);
+    }
+  };
   const paymentMode = "cash"; // Admin/partner updates payment mode via invoice
   const [orderResults, setOrderResults] = useState<OrderResult[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showPacking, setShowPacking] = useState(false);
 
   useEffect(() => {
-    if (!user) { router.push("/login"); return; }
     if (cart.length === 0) { router.push("/cart"); return; }
-    setAddress((user as any).address || "");
+    setAddress((user as any)?.address || "");
     loadProducts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -316,7 +344,7 @@ export default function CheckoutPage() {
         }
 
         // Place order
-        await fetch("/api/orders", {
+        const orderRes = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
@@ -328,8 +356,35 @@ export default function CheckoutPage() {
             deliveryAddress: address,
             invoiceId,
             walletRedeemed: walletRedeemed || undefined,
+            customerName,
+            customerPhone,
           }),
         });
+
+        if (!orderRes.ok) throw new Error(`Order failed for ${businessId}`);
+        const { order, token: newToken } = await orderRes.json();
+
+        // If a new token was returned (common for guest-to-user conversion), log them in
+        if (newToken) {
+          // We need the user profile to call login(token, user)
+          // Since the API didn't return the full user object, we can either
+          // 1. Fetch it here, or
+          // 2. Modify the API to return it.
+          // Let's assume we can call a profile endpoint or just use the info we have.
+          // Actually, let's update the login state if we have a token.
+          // For simplicity, we'll trigger a silent login lookup or just use the token
+          // if the AuthContext allows it. Since useAuth().login needs (token, user),
+          // we will fetch the user profile.
+          const userRes = await fetch("/api/auth/check-phone", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: customerPhone }),
+          });
+          const userData = await userRes.json();
+          if (userData.user) {
+            login(newToken, userData.user);
+          }
+        }
 
         // Fetch business info + partner contact in parallel
         const [bizRes, partnerRes] = await Promise.all([
@@ -386,15 +441,42 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Delivery address */}
             <div className="bg-white rounded-card shadow-card p-5">
-              <h3 className="font-heading font-bold text-brand-dark mb-4">Delivery Address</h3>
-              <textarea
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                required
-                placeholder="Enter full delivery address..."
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-              />
+              <h3 className="font-heading font-bold text-brand-dark mb-4">Delivery Details</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Full Name</label>
+                    <input
+                      value={customerName}
+                      onChange={e => setCustomerName(e.target.value)}
+                      required
+                      placeholder="Your full name"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 block mb-1">Phone Number</label>
+                    <input
+                      value={customerPhone}
+                      onChange={e => setCustomerPhone(e.target.value)}
+                      required
+                      placeholder="10-digit mobile number"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 block mb-1">Delivery Address</label>
+                  <textarea
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    required
+                    placeholder="Enter full delivery address..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                  />
+                </div>
+              </div>
             </div>
 
           </div>
@@ -408,9 +490,30 @@ export default function CheckoutPage() {
                   const p = products[item.productId];
                   if (!p) return null;
                   return (
-                    <div key={item.productId} className="flex justify-between text-xs text-gray-600">
-                      <span className="line-clamp-1 flex-1 mr-2">{p.name} × {item.quantity}</span>
-                      <span className="font-semibold">{formatCurrency(p.sellingPrice * item.quantity)}</span>
+                    <div key={item.productId} className="flex justify-between items-center text-xs text-gray-600 mb-2 last:mb-0">
+                      <div className="flex items-center gap-2 flex-1 mr-2">
+                        <span className="line-clamp-1">{p.name}</span>
+                        <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-1 py-0.5">
+                          <button
+                            onClick={() => updateCartQty(item.productId, item.quantity - 1)}
+                            className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded"
+                          >−</button>
+                          <span className="w-4 text-center font-semibold">{item.quantity}</span>
+                          <button
+                            onClick={() => updateCartQty(item.productId, item.quantity + 1)}
+                            className="w-4 h-4 flex items-center justify-center hover:bg-gray-200 rounded"
+                          >+</button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold">{formatCurrency(p.sellingPrice * item.quantity)}</span>
+                        <button
+                          onClick={() => removeFromCart(item.productId)}
+                          className="text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}

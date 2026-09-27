@@ -15,13 +15,13 @@ interface AboutContent {
 }
 
 const DEFAULT: AboutContent = {
-  headline: "About Product Suite",
-  tagline: "Multiple businesses. One platform. Endless possibilities.",
-  story: "Product Suite was founded in 2024 by Vigneshwaran Ramachandran with a single small business and a big vision. What started as a humble venture has grown into a powerful multi-business platform bringing together retail, finance, gifts, invitations, and market analytics — all under one roof.",
+  headline: "About Vinks Crackers",
+  tagline: "Quality, Trust, and Joy in every spark.",
+  story: ``,
   ceoName: "Vigneshwaran Ramachandran",
   ceoTitle: "CEO & Founder",
   ceoPhone: "7373872638",
-  email: "productsuite@gmail.com",
+  email: "vignesh.crackersfireworks@gmail.com",
   mission: "Our mission is to make shopping, finance, and market insights simple and accessible for everyone — from festive crackers to wedding invitations, curated gifts to expert financial tools.",
   founded: "2024",
 };
@@ -49,31 +49,6 @@ export default function AboutPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
-
-      {/* ── Hero ── */}
-      <div
-        className="rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%)" }}
-      >
-        <div
-          className="absolute -top-10 -right-10 w-64 h-64 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle,#FFC43F,transparent)" }}
-        />
-        <div className="relative">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
-            style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}
-          >
-            <ShoppingCart size={26} className="text-white" strokeWidth={2.5} />
-          </div>
-          <h1 className="font-heading text-3xl sm:text-4xl font-bold mb-3 text-white">
-            {content.headline}
-          </h1>
-          <p className="text-[#FFC43F] text-base sm:text-lg font-semibold leading-snug max-w-xl">
-            {content.tagline}
-          </p>
-        </div>
-      </div>
 
       {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -104,8 +79,8 @@ export default function AboutPage() {
             {/* Single full-view photo */}
             <div className="relative w-full">
               <img
-                src="/images/ceo-office.jpg"
-                alt="Vigneshwaran Ramachandran at work"
+                src="/images/ceo.png"
+                alt="Vigneshwaran Ramachandran"
                 className="rounded-2xl shadow-lg w-full h-auto block"
               />
               {/* gold accent */}
@@ -120,18 +95,14 @@ export default function AboutPage() {
               <div className="font-heading font-bold text-2xl sm:text-3xl text-brand-dark leading-tight">
                 {content.ceoName}
               </div>
-              <div
-                className="inline-block mt-2 mb-4 px-3 py-1 rounded-full text-xs font-bold"
-                style={{ background: "#FFF8E7", color: "#f7a422" }}
-              >
-                {content.ceoTitle || "CEO & Founder"}
-              </div>
-              <p className="text-gray-500 text-sm leading-relaxed mb-5">
-                Visionary entrepreneur who started with one small business in {content.founded || "2024"}
-                and built it into a thriving multi-business platform — bringing together retail,
-                finance, gifts, invitations, and market analytics all under one roof.
-              </p>
-              <div className="flex flex-wrap gap-3">
+
+              <div className="flex flex-wrap gap-4 items-center justify-center sm:justify-start mt-4 mb-6">
+                <div
+                  className="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                  style={{ background: "#FFF8E7", color: "#f7a422" }}
+                >
+                  {content.ceoTitle || "CEO & Founder"}
+                </div>
                 {content.ceoPhone && (
                   <a
                     href={`tel:${content.ceoPhone}`}
@@ -153,23 +124,18 @@ export default function AboutPage() {
                   </a>
                 )}
               </div>
+              <p className="text-gray-600 text-sm leading-relaxed mb-5 whitespace-pre-line">
+                {content.story}
+              </p>
+              <div className="flex flex-wrap gap-3">
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── Our Story ── */}
-      {content.story && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "#FFF8E7" }}>
-              <BookOpen size={16} style={{ color: "#FFC43F" }} />
-            </div>
-            <h2 className="font-heading font-bold text-brand-dark text-lg">Our Story</h2>
-          </div>
-          <p className="text-gray-600 text-sm leading-relaxed">{content.story}</p>
-        </div>
-      )}
+      {null}
 
       {/* ── Mission ── */}
       {content.mission && (
@@ -189,8 +155,8 @@ export default function AboutPage() {
 
       {/* ── Contact CTA ── */}
       <div className="rounded-2xl p-6 sm:p-8 text-center" style={{ background: "#1a1a2e" }}>
-        <h2 className="font-heading font-bold text-white text-xl mb-2">Get in Touch</h2>
-        <p className="text-gray-400 text-sm mb-5">Have questions? We'd love to hear from you.</p>
+        <h2 className="font-heading font-bold text-white text-xl mb-2" style={{ color: 'white' }}>Get in Touch</h2>
+        <p className="text-white text-sm mb-5">Have questions? We'd love to hear from you.</p>
         <a
           href={`mailto:${content.email}`}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-opacity hover:opacity-90"

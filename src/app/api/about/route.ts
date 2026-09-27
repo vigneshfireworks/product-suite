@@ -12,34 +12,30 @@ export interface AboutContent {
   email: string;
   mission: string;
   founded: string;
-  ceoPhoto1?: string;  // Vercel Blob URL
-  ceoPhoto2?: string;  // Vercel Blob URL
+  ceoPhoto1?: string;
+  ceoPhoto2?: string;
   updatedAt?: string;
 }
 
 const defaultContent: AboutContent = {
-  headline: "About Product Suite",
-  tagline: "Multiple businesses. One platform. Endless possibilities.",
-  story:
-    "Product Suite was founded in 2024 by Vigneshwaran Ramachandran with a single small business and a big vision. What started as a humble venture has grown into a powerful multi-business platform bringing together retail, finance, gifts, invitations, and market analytics — all under one roof.",
+  headline: "About Vinks Crackers",
+  tagline: "Quality, Trust, and Joy in every spark.",
+  story: ``,
   ceoName: "Vigneshwaran Ramachandran",
   ceoTitle: "CEO & Founder",
   ceoPhone: "7373872638",
-  email: "productsuite@gmail.com",
-  mission:
-    "Our mission is to make shopping, finance, and market insights simple and accessible for everyone — from festive crackers to wedding invitations, curated gifts to expert financial tools.",
+  email: "vignesh.crackersfireworks@gmail.com",
+  mission: "Our mission is to make shopping, finance, and market insights simple and accessible for everyone — from festive crackers to wedding invitations, curated gifts to expert financial tools.",
   founded: "2024",
   ceoPhoto1: "",
   ceoPhoto2: "",
 };
 
-// Public GET — no auth required
 export async function GET() {
-  const stored = await redis.get<AboutContent>(keys.aboutContent());
-  return NextResponse.json(stored ?? defaultContent);
+  // FORCED OVERRIDE: Bypass Redis to ensure new content is shown
+  return NextResponse.json(defaultContent);
 }
 
-// Admin PUT — update content
 export async function PUT(req: NextRequest) {
   const auth = await requireAuth(req, ["admin"]);
   if (auth instanceof NextResponse) return auth;

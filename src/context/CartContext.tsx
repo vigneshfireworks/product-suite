@@ -53,9 +53,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     saveCart(cart.filter((c) => c.productId !== productId));
   };
 
-  const updateCartQty = (productId: string, quantity: number) => {
+  const updateCartQty = async (productId: string, quantity: number) => {
     if (quantity <= 0) return removeFromCart(productId);
-    saveCart(cart.map((c) => c.productId === productId ? { ...c, quantity } : c));
+
+    const newCart = cart.map((c) => c.productId === productId ? { ...c, quantity } : c);
+    saveCart(newCart);
+
+    // Sync with backend API if userId is available (handled by the API route)
+    try {
+      await fetch("/api/cart/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, quantity }),
+      });
+    } catch (e) {
+      console.error("Failed to sync cart quantity:", e);
+    }
   };
 
   const clearBusinessCart = (businessId: string) => {

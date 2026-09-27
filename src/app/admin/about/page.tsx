@@ -249,7 +249,7 @@ export default function AdminAboutPage() {
         </h2>
         <Field label="Page Headline" name="headline" value={form.headline} onChange={handleChange} placeholder="About Product Suite" />
         <Field label="Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Multiple businesses. One platform." />
-        <Field label="Contact Email" name="email" value={form.email} onChange={handleChange} placeholder="productsuite@gmail.com" />
+        <Field label="Contact Email" name="email" value={form.email} onChange={handleChange} placeholder="vignesh.crackersfireworks@gmail.com" />
       </div>
 
       {/* Story & Mission */}

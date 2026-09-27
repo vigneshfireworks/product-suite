@@ -6,16 +6,19 @@ import { generateId, isValidEmail, isValidPhone } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, age, sex, phone, email, address, password } = await req.json();
+    const { name, age, sex, phone, email, address } = await req.json();
 
-    if (!name || !age || !sex || !phone || !email || !address || !password) {
+    if (!name || !age || !sex || !phone || !email || !address) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
     if (!isValidPhone(phone)) {
-      return NextResponse.json({ error: "Invalid phone number (10 digits starting with 6-9)" }, { status: 400 });
+      // Relaxed validation: allow any numeric string between 8-15 digits
+      if (!/^\d{8,15}$/.test(phone)) {
+        return NextResponse.json({ error: "Invalid phone number format" }, { status: 400 });
+      }
     }
 
     const existingEmail = await redis.get(keys.userByEmail(email));
@@ -28,7 +31,6 @@ export async function POST(req: NextRequest) {
     }
 
     const id = generateId();
-    const passwordHash = await hashPassword(password);
     const user: User = {
       id,
       name,
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
       sex,
       address,
       role: "customer",
-      passwordHash,
+      passwordHash: "", // No password required
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -51,8 +53,11 @@ export async function POST(req: NextRequest) {
     const token = await signToken({ userId: id, role: "customer" });
     const { passwordHash: _, ...safeUser } = user;
     return NextResponse.json({ token, user: safeUser }, { status: 201 });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (err: any) {
+    console.error("SIGNUP_ERROR:", err);
+    return NextResponse.json({
+      error: "Server error",
+      details: err instanceof Error ? err.message : String(err)
+    }, { status: 500 });
   }
 }

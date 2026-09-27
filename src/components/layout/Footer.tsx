@@ -67,8 +67,8 @@ export function Footer() {
           {/* Right: contact */}
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500">Support:</span>
-            <a href="mailto:productsuite@gmail.com" className="text-accent hover:underline">
-              productsuite@gmail.com
+            <a href="mailto:vignesh.crackersfireworks@gmail.com" className="text-accent hover:underline">
+              vignesh.crackersfireworks@gmail.com
             </a>
           </div>
         </div>

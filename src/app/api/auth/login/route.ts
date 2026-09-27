@@ -5,15 +5,16 @@ import { User, Partner } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
-    const { username, password } = await req.json();
+    const body = await req.json();
+    const { username, password } = body;
 
-    if (!username || !password) {
+    if (!username) {
       return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
     }
 
     const isEmail = username.includes("@");
 
-    // ── 1. Try customer / admin lookup (by email or phone) ──────────────
+    // ── 1. Try user lookup (by email or phone) ──────────────
     let userId: string | null = null;
     if (isEmail) {
       userId = await redis.get<string>(keys.userByEmail(username));
@@ -24,20 +25,30 @@ export async function POST(req: NextRequest) {
     if (userId) {
       const user = await redis.get<User>(keys.user(userId));
       if (user) {
-        const valid = await verifyPassword(password, user.passwordHash);
-        if (!valid) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+        // CUSTOMERS: login with phone as hidden password (automatic)
+        if (user.role === "customer") {
+          const ip = req.headers.get("x-forwarded-for") || "unknown";
+          const token = await signToken({ userId: user.id, role: "customer" });
+          await redis.set(keys.user(user.id), {
+            ...user,
+            lastLogin: new Date().toISOString(),
+            lastIp: ip,
+          });
 
-        const role = user.role === "admin" ? "admin" : "customer";
-        const ip = req.headers.get("x-forwarded-for") || "unknown";
-        const token = await signToken({ userId: user.id, role });
-        await redis.set(keys.user(user.id), {
-          ...user,
-          lastLogin: new Date().toISOString(),
-          lastIp: ip,
-        });
+          const { passwordHash: _, ...safeUser } = user;
+          return NextResponse.json({ token, user: { ...safeUser, role: "customer" } });
+        }
 
-        const { passwordHash: _, ...safeUser } = user;
-        return NextResponse.json({ token, user: { ...safeUser, role } });
+        // ADMINS: verify password
+        if (user.role === "admin") {
+          if (!password) return NextResponse.json({ error: "Password required for admin" }, { status: 401 });
+          const isValid = await verifyPassword(password, user.passwordHash);
+          if (!isValid) return NextResponse.json({ error: "Invalid admin password" }, { status: 401 });
+
+          const token = await signToken({ userId: user.id, role: "admin" });
+          const { passwordHash: _, ...safeUser } = user;
+          return NextResponse.json({ token, user: { ...safeUser, role: "admin" } });
+        }
       }
     }
 
@@ -47,8 +58,10 @@ export async function POST(req: NextRequest) {
       if (partnerId) {
         const partner = await redis.get<Partner>(keys.partner(partnerId));
         if (partner) {
-          const valid = await verifyPassword(password, partner.passwordHash);
-          if (!valid) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+          // Partners also require password verification
+          if (!password) return NextResponse.json({ error: "Password required for partner" }, { status: 401 });
+          const isValid = await verifyPassword(password, partner.passwordHash);
+          if (!isValid) return NextResponse.json({ error: "Invalid partner password" }, { status: 401 });
 
           const token = await signToken({ userId: partner.id, role: "partner" });
           const { passwordHash: _, ...safePartner } = partner;

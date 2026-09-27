@@ -58,5 +58,5 @@ export function isValidEmail(email: string): boolean {
 }
 
 export function isValidPhone(phone: string): boolean {
-  return /^[6-9]\d{9}$/.test(phone);
+  return /^\d{8,15}$/.test(phone);
 }

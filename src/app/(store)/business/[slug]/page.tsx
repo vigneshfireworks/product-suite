@@ -36,7 +36,7 @@ export default function BusinessPage() {
     if (!authLoading) loadData();
     // Clear footer branding when leaving this page
     return () => setActiveBusiness(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, authLoading]);
   // NOTE: no second useEffect — activeCat and urlSort are derived directly from
   // urlSearchParams, which is reactive and re-renders the component on URL change.
@@ -125,12 +125,39 @@ export default function BusinessPage() {
     new Set(products.filter(p => p.category).map(p => p.category))
   ).sort();
 
+  // Group sorted products by category
+  const groupedProducts = sorted.reduce((acc, p) => {
+    const cat = p.category || "Other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(p);
+    return acc;
+  }, {} as Record<string, Product[]>);
+
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
       {/* Business header */}
-      <div className="mb-4 md:mb-6">
-        <h1 className="font-heading text-xl md:text-3xl font-bold text-brand-dark">{business.name}</h1>
-        <p className="text-gray-500 mt-1 text-sm">{business.description}</p>
+      <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-xl md:text-3xl font-bold text-brand-dark">{business.name}</h1>
+          <p className="text-gray-500 mt-1 text-sm">{business.description}</p>
+        </div>
+
+        {/* Desktop Category Dropdown */}
+        <div className="hidden md:block">
+          <select
+            value={activeCat}
+            onChange={(e) => router.push(`/business/${business.slug}?cat=${e.target.value || ""}`)}
+            className="px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-accent bg-white cursor-pointer"
+          >
+            <option value="">All Categories</option>
+            {productCategories.map(cat => (
+              <option key={cat} value={cat} className="capitalize">
+                {cat.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* ── Mobile category tab strip ─────────────────────────── */}
@@ -208,9 +235,23 @@ export default function BusinessPage() {
           <p className="text-gray-500 text-sm">Products will appear here once added.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {sorted.map((p) => (
-            <ProductCard key={p.id} product={p} business={business} />
+        <div className="space-y-10">
+          {Object.entries(groupedProducts).map(([cat, prods]) => (
+            <div key={cat} className="space-y-4">
+              <div className="flex items-center gap-3 border-b-2 border-gray-100 pb-2">
+                <span className="font-heading font-bold text-lg text-brand-dark capitalize">
+                  {cat.replace(/_/g, " ")}
+                </span>
+                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                  {prods.length} Products
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {prods.map((p) => (
+                  <ProductCard key={p.id} product={p} business={business} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -252,7 +293,6 @@ function ProductModal({
     Math.round(((product.originalPrice - product.sellingPrice) / product.originalPrice) * 100);
 
   const handleAddToCart = () => {
-    if (!user) { window.location.href = "/login"; return; }
     addToCart({ productId: product.id, businessId: business.id, name: product.name, price: product.sellingPrice, quantity: qty });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -464,11 +504,13 @@ function ProductModal({
 
 /* ── Product card ─────────────────────────────────────────────── */
 function ProductCard({ product, business }: { product: Product; business: Business }) {
-  const { addToCart, addToWatchlist, removeFromWatchlist, watchlist } = useCart();
+  const { cart, addToCart, updateCartQty, addToWatchlist, removeFromWatchlist, watchlist } = useCart();
   const { user } = useAuth();
-  const [qty,       setQty]       = useState(1);
-  const [added,     setAdded]     = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+  const cartItem = cart.find(item => item.productId === product.id);
+  const isInCart = !!cartItem;
+  const currentQty = cartItem ? cartItem.quantity : 1;
 
   const isWishlisted = watchlist.some(w => w.productId === product.id);
 
@@ -479,10 +521,7 @@ function ProductCard({ product, business }: { product: Product; business: Busine
   };
 
   const handleAddToCart = () => {
-    if (!user) { window.location.href = "/login"; return; }
-    addToCart({ productId: product.id, businessId: business.id, name: product.name, price: product.sellingPrice, quantity: qty });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    addToCart({ productId: product.id, businessId: business.id, name: product.name, price: product.sellingPrice, quantity: 1 });
   };
 
   const discount = product.discount ||
@@ -571,24 +610,32 @@ function ProductCard({ product, business }: { product: Product; business: Busine
               )}
             </div>
             <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-              <button
-                onClick={e => { e.stopPropagation(); setQty(Math.max(1, qty - 1)); }}
-                className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center text-sm font-bold hover:bg-gray-200 transition-colors"
-              >-</button>
-              <span className="text-xs font-semibold w-5 text-center">{qty}</span>
-              <button
-                onClick={e => { e.stopPropagation(); setQty(qty + 1); }}
-                className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center text-sm font-bold hover:bg-gray-200 transition-colors"
-              >+</button>
+              {!isInCart ? (
+                <AnimatedAddToCartButton
+                  onClick={handleAddToCart}
+                  added={false}
+                  disabled={product.stock === 0}
+                  size="sm"
+                  addedLabel="✓ Added"
+                  className="w-full mt-2"
+                  idleLabel={`Add to Cart`}
+                />
+              ) : (
+                <div className="flex items-center gap-2 w-full mt-2">
+                  <button
+                    onClick={() => updateCartQty(product.id, currentQty - 1)}
+                    className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm font-bold hover:bg-gray-200 transition-colors"
+                  >−</button>
+                  <span className="flex-1 text-center text-xs font-bold text-brand-dark">
+                    {currentQty} item{currentQty > 1 ? 's' : ''}
+                  </span>
+                  <button
+                    onClick={() => updateCartQty(product.id, currentQty + 1)}
+                    className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm font-bold hover:bg-gray-200 transition-colors"
+                  >+</button>
+                </div>
+              )}
             </div>
-            <AnimatedAddToCartButton
-              onClick={handleAddToCart}
-              added={added}
-              disabled={product.stock === 0}
-              size="sm"
-              addedLabel="✓ Added"
-              className="w-full mt-2"
-            />
           </div>
         </div>
       </div>

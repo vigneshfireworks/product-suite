@@ -10,7 +10,7 @@ export default function SignupPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
-    name: "", age: "", sex: "male", phone: "", email: "", address: "", password: "", confirm: "",
+    name: "", age: "", sex: "male", phone: "", email: "", address: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,14 +21,6 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (form.password !== form.confirm) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -36,12 +28,11 @@ export default function SignupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
-          age: Number(form.age),
+          age: form.age,
           sex: form.sex,
           phone: form.phone,
           email: form.email,
           address: form.address,
-          password: form.password,
         }),
       });
       const data = await res.json();
@@ -92,11 +83,6 @@ export default function SignupPage() {
           </div>
 
           <Input label="Address" placeholder="Your full address" value={form.address} onChange={update("address")} required />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Password" type="password" placeholder="Min 6 characters" value={form.password} onChange={update("password")} required />
-            <Input label="Confirm Password" type="password" placeholder="Repeat password" value={form.confirm} onChange={update("confirm")} required />
-          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>

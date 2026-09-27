@@ -1,15 +1,15 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,11 +21,11 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim() }),
+        body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || "Invalid credentials");
         return;
       }
       login(data.token, data.user);
@@ -40,26 +40,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-100">
-        {/* Logo */}
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4 py-10">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border border-slate-200">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">V</span>
+          <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-bold text-2xl">A</span>
           </div>
-          <h1 className="font-heading text-2xl font-bold text-brand-dark">Welcome back!</h1>
-          <p className="text-gray-500 text-sm mt-1">Sign in to your account</p>
+          <h1 className="font-heading text-2xl font-bold text-slate-900">Management Login</h1>
+          <p className="text-slate-500 text-sm mt-1">Admin & Partner Access</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Phone Number"
-            type="tel"
-            placeholder="10-digit phone"
+            label="Username / Email"
+            type="text"
+            placeholder="Admin email or username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
-            autoComplete="username"
+          />
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
 
           {error && (
@@ -68,20 +74,16 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button type="submit" className="w-full" size="lg" loading={loading}>
-            Sign In
+          <Button type="submit" className="w-full bg-slate-800 hover:bg-slate-700 text-white" size="lg" loading={loading}>
+            Secure Sign In
           </Button>
         </form>
 
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-accent font-semibold hover:underline">Sign up</Link>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-slate-500">
+            Customer?{" "}
+            <a href="/login" className="text-slate-800 font-semibold hover:underline">Go to Store Login</a>
           </p>
-        </div>
-
-        <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600">← Back to Store</Link>
         </div>
       </div>
     </div>
