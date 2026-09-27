@@ -2,6 +2,35 @@
 import React, { useEffect, useState } from "react";
 import { Phone, Mail, Building2, CalendarDays, Target } from "lucide-react";
 
+const styleSheet = `
+@keyframes rotate-3d {
+  0%, 20%, 96%, 100% {
+    transform: rotateY(45deg) scale(.6) translateZ(-200px);
+    opacity: 0.8;
+    filter: blur(3px);
+    z-index: -1;
+  }
+  21%, 45% {
+    transform: rotateY(0deg) scale(1) translateZ(0px);
+    opacity: 1;
+    filter: blur(0px);
+    z-index: 100;
+  }
+  46%, 70% {
+    transform: rotateY(-45deg) scale(.6) translateZ(-200px);
+    opacity: 0.8;
+    filter: blur(3px);
+    z-index: -1;
+  }
+  71%, 95% {
+    transform: rotateY(-90deg) scale(.6) translateZ(-300px);
+    opacity: 0;
+    filter: blur(0px);
+    z-index: 0;
+  }
+}
+`;
+
 interface AboutContent {
   headline: string;
   tagline: string;
@@ -29,7 +58,8 @@ const DEFAULT: AboutContent = {
 export default function AboutPage() {
   const [content, setContent] = useState<AboutContent>(DEFAULT);
   const [loading, setLoading] = useState(true);
-  const [currentImage, setCurrentImage] = useState(0);
+  // Removed currentImage state as we are moving to CSS animation
+
 
   const carouselImages = [
     "/images/ceo-office.jpg",
@@ -44,13 +74,8 @@ export default function AboutPage() {
       .then(d => { if (d) setContent(d); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+  // Removed carousel interval useEffect
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % carouselImages.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
 
   if (loading) {
     return (
@@ -64,6 +89,7 @@ export default function AboutPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
+      <style>{styleSheet}</style>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
           { icon: <CalendarDays size={20} />, label: "Founded", value: content.founded || "2024" },
@@ -142,25 +168,23 @@ export default function AboutPage() {
           <h2 className="font-heading font-bold text-brand-dark text-2xl">Our Team</h2>
           <div className="w-12 h-1 bg-brand-gold mx-auto mt-2 rounded-full" style={{ background: "#FFC43F" }} />
         </div>
-        <div className="relative w-full overflow-hidden rounded-3xl shadow-lg h-64 sm:h-96">
-          {carouselImages.map((img, index) => (
-            <div
-              key={img}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentImage ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <img src={img} alt={`Team ${index + 1}`} className="w-full h-full object-contain" />
-            </div>
-          ))}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {carouselImages.map((_, index) => (
+        <div className="relative w-full overflow-hidden py-12 sm:py-20 flex items-center justify-center" style={{ perspective: "3000px" }}>
+          <div className="relative w-full max-w-[85%] sm:max-w-2xl aspect-video" style={{ transformStyle: "preserve-3d" }}>
+            {carouselImages.map((img, index) => (
               <div
-                key={index}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  index === currentImage ? "w-6 bg-white" : "w-1.5 bg-white/50"
-                }`}
-              />
+                key={img}
+                className="absolute inset-0 transition-all duration-1000 ease-in-out"
+                style={{
+                  animation: `rotate-3d 20s ease-in-out infinite`,
+                  animationDelay: `${index * -5}s`,
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                }}
+              >
+                <div className="w-full h-full rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden bg-white border-2 sm:border-4 border-white">
+                  <img src={img} alt={`Team ${index + 1}`} className="w-full h-full object-contain" />
+                </div>
+              </div>
             ))}
           </div>
         </div>
