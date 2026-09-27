@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (quantity <= 0) {
       await redis.hdel(cartKey, productId);
     } else {
-      await redis.hset(cartKey, productId, quantity.toString());
+      await redis.hset(cartKey, { [productId]: quantity.toString() });
     }
 
     return NextResponse.json({ success: true });
