@@ -65,6 +65,7 @@ export interface Product {
   subCategory?: string;
   images: string[];
   videoUrl?: string;
+  externalImageUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

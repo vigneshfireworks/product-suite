@@ -7,13 +7,14 @@ import { Product } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { SortTh, useTableSort } from "@/components/ui/SortTh";
 import { usePagination, Pagination } from "@/components/ui/Pagination";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
 
 interface Category { id: string; name: string; }
-const EMPTY_FORM = { name: "", description: "", originalPrice: "", sellingPrice: "", discount: "", stock: "", category: "", quantity: "1", images: [] as string[], videoUrl: "" };
+const EMPTY_FORM = { name: "", description: "", originalPrice: "", sellingPrice: "", discount: "", stock: "", category: "", quantity: "1", images: [] as string[], videoUrl: "", externalImageUrl: "" };
 
 export default function BusinessProducts() {
   const { id: businessId } = useParams() as { id: string };
@@ -71,7 +72,7 @@ export default function BusinessProducts() {
   const openCreate = () => { setEditProd(null); setForm({ ...EMPTY_FORM }); setModal(true); };
   const openEdit   = (p: Product) => {
     setEditProd(p);
-    setForm({ name: p.name, description: p.description, originalPrice: String(p.originalPrice), sellingPrice: String(p.sellingPrice), discount: String(p.discount), stock: String(p.stock), category: p.category, quantity: String(p.quantity), images: p.images || [], videoUrl: p.videoUrl || "" });
+    setForm({ name: p.name, description: p.description, originalPrice: String(p.originalPrice), sellingPrice: String(p.sellingPrice), discount: String(p.discount), stock: String(p.stock), category: p.category, quantity: String(p.quantity), images: p.images || [], videoUrl: p.videoUrl || "", externalImageUrl: p.externalImageUrl || "" });
     setModal(true);
   };
 
@@ -184,8 +185,8 @@ export default function BusinessProducts() {
               ) : paged.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    {p.images?.[0]
-                      ? <img src={p.images[0]} alt={p.name} className="w-12 h-12 object-cover rounded-xl border" />
+                    {p.images?.[0] || p.externalImageUrl
+                      ? <ProductImage product={p} className="w-12 h-12 object-cover rounded-xl border" />
                       : <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center"><ImageIcon size={18} className="text-gray-300" /></div>
                     }
                   </td>
@@ -239,6 +240,7 @@ export default function BusinessProducts() {
               </select>
             </div>
             <Input label="Qty per Unit" type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+            <Input label="External Image URL (optional)" value={form.externalImageUrl} onChange={e => setForm(f => ({ ...f, externalImageUrl: e.target.value }))} placeholder="https://..." />
           </div>
           <Textarea label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           <Input label="Video URL (optional)" value={form.videoUrl} onChange={e => setForm(f => ({ ...f, videoUrl: e.target.value }))} placeholder="https://youtube.com/..." />

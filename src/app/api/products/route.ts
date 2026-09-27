@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const body = await req.json();
-  const { businessId, name, description, originalPrice, sellingPrice, discount, quantity, stock, category, subCategory, images } = body;
+  const { businessId, name, description, originalPrice, sellingPrice, discount, quantity, stock, category, subCategory, images, externalImageUrl } = body;
   if (!businessId || !name || !originalPrice || !sellingPrice) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
     category: category || "general",
     subCategory: subCategory || "",
     images: images || [],
+    externalImageUrl: externalImageUrl || "",
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

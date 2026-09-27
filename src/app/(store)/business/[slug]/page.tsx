@@ -14,6 +14,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { AnimatedAddToCartButton } from "@/components/ui/AnimatedAddToCartButton";
 import { StatusBadge } from "@/components/ui/Badge";
+import { ProductImage } from "@/components/ui/ProductImage";
 
 export default function BusinessPage() {
   const params = useParams();
@@ -344,12 +345,11 @@ function ProductModal({
           </button>
 
           {/* Current image — key forces re-mount → CSS fade plays */}
-          {images.length > 0 ? (
-            <img
-              key={imgIdx}
-              src={images[imgIdx]}
-              alt={`${product.name} ${imgIdx + 1}`}
+          {images.length > 0 || product.externalImageUrl ? (
+            <ProductImage
+              product={product}
               className="h-full w-full object-contain p-4 prod-modal-img"
+              alt={`${product.name} ${imgIdx + 1}`}
             />
           ) : (
             <div className="text-6xl opacity-20">📦</div>
@@ -568,15 +568,10 @@ function ProductCard({ product, business }: { product: Product; business: Busine
 
           {/* Image or placeholder — pump-up animation targets these */}
           <div className="h-full flex items-center justify-center">
-            {product.images?.[0] ? (
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="h-full w-full object-contain p-2"
-              />
-            ) : (
-              <div className="prod-placeholder text-4xl opacity-30 select-none">📦</div>
-            )}
+            <ProductImage
+              product={product}
+              className="h-full w-full object-contain p-2"
+            />
           </div>
 
           {/* Video badge — shown when videoUrl exists */}
