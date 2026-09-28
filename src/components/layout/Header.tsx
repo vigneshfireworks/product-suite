@@ -5,10 +5,12 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Search, Heart, User, ShoppingCart, ChevronDown,
   Phone, LogOut, LayoutDashboard, Package, ArrowLeft, Wallet,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useMobileSearch } from "@/context/MobileSearchContext";
+import { Modal } from "@/components/ui/Modal";
 import { Business } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -55,8 +57,12 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Promo state
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   // Detect if we're inside a specific business page
-  const bizMatch = pathname.match(/^\/business\/([^/?]+)/);
+  const bizMatch = pathname ? pathname.match(/^\/business\/([^/?]+)/) : null;
   const isBusinessPage = !!bizMatch;
 
   const [businesses,       setBusinesses]       = useState<Business[]>([]);
@@ -154,100 +160,194 @@ export function Header() {
         </div>
       )}
 
-      {/* ── MOBILE APP BAR (home / non-business pages) ──────────── */}
-      {!isBusinessPage && (
-        <div className="md:hidden flex items-center h-[56px] px-4 gap-3">
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}
-            >
-              <ShoppingCart size={18} className="text-white" strokeWidth={2.5} />
+      {/* ── PROMO MARQUEE (Vinks Crackers only) ────────────────── */}
+      {bizSlug === "vinks-crackers" && (
+        <div
+          className="cursor-pointer overflow-hidden bg-[#FFC43F] py-1.5 border-b border-[#f7a422] relative"
+          onClick={() => setIsPromoModalOpen(true)}
+        >
+          <style>{`
+            @keyframes marquee {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+              display: flex;
+              width: max-content;
+              animation: marquee 25s linear infinite;
+            }
+          `}</style>
+          <div className="animate-marquee whitespace-nowrap">
+            <div className="flex items-center gap-8 px-4 font-heading font-bold text-sm uppercase tracking-wider" style={{ color: "#222" }}>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
             </div>
-            <div className="leading-tight">
-              <div className="font-heading font-extrabold" style={{ fontSize: "1rem", color: "#222", letterSpacing: "0.04em" }}>
-                PRODUCT <span style={{ color: "#FFC43F" }}>SUITE</span>
-              </div>
-              <div className="font-sans font-semibold tracking-widest" style={{ fontSize: "0.48rem", color: "#aaa", letterSpacing: "0.18em" }}>
-                MULTI BUSINESS
-              </div>
+            <div className="flex items-center gap-8 px-4 font-heading font-bold text-sm uppercase tracking-wider" style={{ color: "#222" }}>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
+              <span>Diwali offer 3 packs!!! family pack 5k, adult pack 8k, small pack 3k available now, click here to view the details.</span>
+              <span className="mx-8 text-white">✦</span>
             </div>
-          </Link>
-          <div className="flex-1" />
-          <button
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-            onClick={() => toggleMobileSearch()}
-          >
-            <Search size={20} style={{ color: "#444" }} />
-          </button>
-          <div ref={cartRef} className="relative">
-            <button
-              onClick={() => setCartOpen(!cartOpen)}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <ShoppingCart size={20} style={{ color: "#444" }} />
-              {cartCount > 0 && (
-                <span
-                  className="absolute top-0 right-0 text-white font-bold rounded-full flex items-center justify-center"
-                  style={{ background: "#FFC43F", fontSize: "0.55rem", minWidth: "15px", height: "15px" }}
-                >
-                  {cartCount}
-                </span>
-              )}
-            </button>
-            {/* cart dropdown (same as desktop but mobile-positioned) */}
-            {cartOpen && (
-              <div
-                className="absolute right-0 top-full mt-2 bg-white rounded-2xl z-50 overflow-hidden"
-                style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.15)", border: "1px solid #f0f0f0", width: "300px" }}
-              >
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
-                  <span className="font-heading font-bold text-base" style={{ color: "#FFC43F" }}>Your cart</span>
-                  {cartCount > 0 && (
-                    <span className="text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "#FFC43F" }}>
-                      {cartCount}
-                    </span>
-                  )}
-                </div>
-                {cartCount === 0 ? (
-                  <div className="text-center py-8 px-5">
-                    <ShoppingCart size={36} className="mx-auto text-gray-200 mb-3" />
-                    <p className="text-sm text-gray-500 mb-3">Your cart is empty</p>
-                    <Link href="/" onClick={() => setCartOpen(false)} className="text-xs font-semibold" style={{ color: "#FFC43F" }}>Browse Businesses →</Link>
-                  </div>
-                ) : (
-                  <>
-                    <div className="max-h-48 overflow-y-auto px-5 py-2 space-y-3">
-                      {cart.map(item => (
-                        <div key={item.productId} className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-base flex-shrink-0">📦</div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-gray-800 line-clamp-1">{item.name}</div>
-                            <div className="text-xs text-gray-400">Qty: {item.quantity}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-bold">{formatCurrency(item.price * item.quantity)}</div>
-                            <button onClick={() => removeFromCart(item.productId)} className="text-xs text-red-400">Remove</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="px-5 py-3 border-t border-gray-100 flex justify-between">
-                      <span className="text-sm text-gray-500">Total</span>
-                      <span className="font-bold">{formatCurrency(cartTotal)}</span>
-                    </div>
-                    <div className="px-5 pb-4">
-                      <Link href="/checkout" onClick={() => setCartOpen(false)} className="block w-full text-center py-3 rounded-xl text-sm font-bold text-white" style={{ background: "#FFC43F" }}>
-                        Continue to checkout
-                      </Link>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}
+
+      {/* ── MOBILE APP BAR (home / non-business pages) ──────────── */}
+      {!isBusinessPage && (
+        <div className="md:hidden flex flex-col">
+          <div className="flex items-center h-[56px] px-4 gap-3">
+            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg,#FFC43F 0%,#f7a422 100%)" }}
+              >
+                <ShoppingCart size={18} className="text-white" strokeWidth={2.5} />
+              </div>
+              <div className="leading-tight">
+                <div className="font-heading font-extrabold" style={{ fontSize: "1rem", color: "#222", letterSpacing: "0.04em" }}>
+                  PRODUCT <span style={{ color: "#FFC43F" }}>SUITE</span>
+                </div>
+                <div className="font-sans font-semibold tracking-widest" style={{ fontSize: "0.48rem", color: "#aaa", letterSpacing: "0.18em" }}>
+                  MULTI BUSINESS
+                </div>
+              </div>
+            </Link>
+            <div className="flex-1" />
+            <button
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              onClick={() => toggleMobileSearch()}
+            >
+              <Search size={20} style={{ color: "#444" }} />
+            </button>
+            <div ref={cartRef} className="relative">
+              <button
+                onClick={() => setCartOpen(!cartOpen)}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <ShoppingCart size={20} style={{ color: "#444" }} />
+                {cartCount > 0 && (
+                  <span
+                    className="absolute top-0 right-0 text-white font-bold rounded-full flex items-center justify-center"
+                    style={{ background: "#FFC43F", fontSize: "0.55rem", minWidth: "15px", height: "15px" }}
+                  >
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+              {/* cart dropdown (same as desktop but mobile-positioned) */}
+              {cartOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2 bg-white rounded-2xl z-50 overflow-hidden"
+                  style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.15)", border: "1px solid #f0f0f0", width: "300px" }}
+                >
+                  <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+                    <span className="font-heading font-bold text-base" style={{ color: "#FFC43F" }}>Your cart</span>
+                    {cartCount > 0 && (
+                      <span className="text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "#FFC43F" }}>
+                        {cartCount}
+                      </span>
+                    )}
+                  </div>
+                  {cartCount === 0 ? (
+                    <div className="text-center py-8 px-5">
+                      <ShoppingCart size={36} className="mx-auto text-gray-200 mb-3" />
+                      <p className="text-sm text-gray-500 mb-3">Your cart is empty</p>
+                      <Link href="/" onClick={() => setCartOpen(false)} className="text-xs font-semibold" style={{ color: "#FFC43F" }}>Browse Businesses →</Link>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="max-h-48 overflow-y-auto px-5 py-2 space-y-3">
+                        {cart.map(item => (
+                          <div key={item.productId} className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-base flex-shrink-0">📦</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-gray-800 line-clamp-1">{item.name}</div>
+                              <div className="text-xs text-gray-400">Qty: {item.quantity}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-bold">{formatCurrency(item.price * item.quantity)}</div>
+                              <button onClick={() => removeFromCart(item.productId)} className="text-xs text-red-400">Remove</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="px-5 py-3 border-t border-gray-100 flex justify-between">
+                        <span className="text-sm text-gray-500">Total</span>
+                        <span className="font-bold">{formatCurrency(cartTotal)}</span>
+                      </div>
+                      <div className="px-5 pb-4">
+                        <Link href="/checkout" onClick={() => setCartOpen(false)} className="block w-full text-center py-3 rounded-xl text-sm font-bold text-white" style={{ background: "#FFC43F" }}>
+                          Continue to checkout
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Mobile Categories Dropdown (Now visible on all mobile pages) */}
+      <div className="md:hidden w-full px-4 pb-3 mt-2">
+        <div ref={catRef} className="relative w-full">
+          <button
+            onClick={() => setCatOpen(!catOpen)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-700 transition-all active:bg-gray-100"
+            style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}
+          >
+            <span className="flex items-center gap-2">
+              <span className="text-lg">🏪</span> {selectedLabel}
+            </span>
+            <ChevronDown
+              size={18}
+              className={`transition-transform duration-200 text-gray-400 ${catOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {catOpen && (
+            <div
+              className="absolute left-0 right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-2xl py-2 z-50 shadow-2xl max-h-[60vh] overflow-y-auto"
+            >
+              <button
+                type="button"
+                onClick={() => { setSelectedBizId("all"); setCatOpen(false); router.push("/"); }}
+                className="w-full text-left px-5 py-3.5 text-sm font-medium transition-colors hover:bg-gray-50 border-b border-gray-100"
+                style={{ color: selectedBizId === "all" ? "#FFC43F" : "#333", fontWeight: selectedBizId === "all" ? 700 : 500 }}
+              >
+                🏪 All Categories
+              </button>
+              {businesses.map(biz => (
+                <button
+                  key={biz.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBizId(biz.id);
+                    setCatOpen(false);
+                    router.push(`/business/${biz.slug}`);
+                  }}
+                  className="w-full text-left px-5 py-3.5 text-sm font-medium transition-colors hover:bg-gray-50 flex items-center gap-2"
+                  style={{ color: selectedBizId === biz.id ? "#FFC43F" : "#333", fontWeight: selectedBizId === biz.id ? 700 : 500 }}
+                >
+                  <span className="text-lg">{catEmoji(biz.category)}</span>
+                  {biz.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ── DESKTOP MAIN BAR ────────────────────────────────────────── */}
       <div className="hidden md:block w-full px-6 lg:px-10">
@@ -640,6 +740,44 @@ export function Header() {
           </form>
         </div>
       )}
+
+      {/* ── PROMO IMAGE MODAL ───────────────────────────────────── */}
+      <Modal
+        open={isPromoModalOpen}
+        onClose={() => setIsPromoModalOpen(false)}
+        size="lg"
+      >
+        <div className="flex flex-col items-center text-center">
+          <div className="relative w-full aspect-square max-w-md overflow-hidden rounded-2xl bg-gray-100 group">
+            <img
+              src={`/images/${['3k.jpeg', '5k.jpeg', '8k.jpeg'][currentImageIndex]}`}
+              alt="Promo Pack"
+              className="w-full h-full object-cover transition-all duration-500"
+            />
+
+            {/* Navigation Arrows */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentImageIndex((prev) => (prev === 0 ? 2 : prev - 1));
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors"
+            >
+              <ChevronLeft size={24} style={{ color: "#222" }} />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentImageIndex((prev) => (prev === 2 ? 0 : prev + 1));
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-white transition-colors"
+            >
+              <ChevronRight size={24} style={{ color: "#222" }} />
+            </button>
+          </div>
+        </div>
+      </Modal>
     </header>
   );
 }

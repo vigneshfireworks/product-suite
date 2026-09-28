@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Heart, Package, TrendingUp, FileText } from "lucide-react";
@@ -16,7 +16,7 @@ import { AnimatedAddToCartButton } from "@/components/ui/AnimatedAddToCartButton
 import { StatusBadge } from "@/components/ui/Badge";
 import { ProductImage } from "@/components/ui/ProductImage";
 
-export default function BusinessPage() {
+function BusinessPageContent() {
   const params = useParams();
   const slug = params.slug as string;
   const router = useRouter();
@@ -29,39 +29,41 @@ export default function BusinessPage() {
   const [loading, setLoading] = useState(true);
   const urlSearchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(urlSearchParams.get("q") ?? "");
-  // sortBy state is set by the sort-pill buttons; URL ?sort=demand overrides it
   const [sortBy, setSortBy] = useState("default");
 
   useEffect(() => {
-    // Wait for auth to initialize before running finance gate
     if (!authLoading) loadData();
-    // Clear footer branding when leaving this page
     return () => setActiveBusiness(null);
-  // eslint-disable-// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, authLoading]);
-  // NOTE: no second useEffect — activeCat and urlSort are derived directly from
-  // urlSearchParams, which is reactive and re-renders the component on URL change.
 
   const loadData = async () => {
+    setLoading(true);
     try {
       const bRes = await fetch("/api/businesses");
+      if (!bRes.ok) throw new Error(`Businesses API responded with ${bRes.status}`);
+
       const all: Business[] = await bRes.json();
       const found = all.find((b) => b.slug === slug);
-      if (!found) { router.push("/"); return; }
+      if (!found) {
+        console.error(`Business with slug ${slug} not found`);
+        router.push("/");
+        return;
+      }
       setBusiness(found);
       const { bg, dot } = bizColors(found.id, found.category);
       setActiveBusiness({ name: found.name, emoji: bizEmoji(found.name, found.category), bg, dot });
 
-      // Block finance from anonymous (auth is already initialized here)
       if (found.category === "finance" && !user) {
         router.push("/login");
         return;
       }
 
       const pRes = await fetch(`/api/products?businessId=${found.id}`);
+      if (!pRes.ok) throw new Error(`Products API responded with ${pRes.status}`);
       const prods: Product[] = await pRes.json();
       setProducts(Array.isArray(prods) ? prods : []);
-    } catch {
+    } catch (err) {
+      console.error("Error loading business data:", err);
       router.push("/");
     } finally {
       setLoading(false);
@@ -78,16 +80,13 @@ export default function BusinessPage() {
 
   if (!business) return null;
 
-  // Finance business
   if (business.category === "finance") {
     return <FinanceBusinessPage business={business} />;
   }
-  // Share market
   if (business.category === "market_analysis") {
     return <ShareMarketPage business={business} />;
   }
 
-  // Standard product business — derive filter/sort from URL params (reactive via useSearchParams)
   const activeCat = urlSearchParams.get("cat") ?? "";
   const effectiveSortBy = urlSearchParams.get("sort") === "demand" ? "popular" : sortBy;
 
@@ -107,7 +106,7 @@ export default function BusinessPage() {
       case "price_desc":     return b.sellingPrice - a.sellingPrice;
       case "discount_desc":  return db - da;
       case "discount_asc":   return da - db;
-      case "popular":        return (a.stock ?? 999) - (b.stock ?? 999); // lower stock = more popular
+      case "popular":        return (a.stock ?? 999) - (b.stock ?? 999);
       default:               return 0;
     }
   });
@@ -121,12 +120,10 @@ export default function BusinessPage() {
     { value: "popular",       label: "Frequently Ordered" },
   ];
 
-  // Derive unique product categories for mobile tab strip
   const productCategories = Array.from(
     new Set(products.filter(p => p.category).map(p => p.category))
   ).sort();
 
-  // Group sorted products by category
   const groupedProducts = sorted.reduce((acc, p) => {
     const cat = p.category || "Other";
     if (!acc[cat]) acc[cat] = [];
@@ -134,17 +131,14 @@ export default function BusinessPage() {
     return acc;
   }, {} as Record<string, Product[]>);
 
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
-      {/* Business header */}
       <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-xl md:text-3xl font-bold text-brand-dark">{business.name}</h1>
           <p className="text-gray-500 mt-1 text-sm">{business.description}</p>
         </div>
 
-        {/* Desktop Category Dropdown */}
         <div className="hidden md:block">
           <select
             value={activeCat}
@@ -161,7 +155,6 @@ export default function BusinessPage() {
         </div>
       </div>
 
-      {/* ── Mobile category tab strip ─────────────────────────── */}
       {productCategories.length > 0 && (
         <div className="md:hidden -mx-4 px-4 mb-4 overflow-x-auto hide-scrollbar">
           <div className="flex gap-2 pb-1" style={{ minWidth: "max-content" }}>
@@ -199,7 +192,6 @@ export default function BusinessPage() {
         </div>
       )}
 
-      {/* Search bar */}
       <div className="mb-3">
         <input
           value={searchQuery}
@@ -209,7 +201,6 @@ export default function BusinessPage() {
         />
       </div>
 
-      {/* Sort pills — horizontally scrollable on mobile, wrapped on desktop */}
       <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto hide-scrollbar mb-6">
         <div className="flex items-center gap-2 md:flex-wrap" style={{ minWidth: "max-content" }}>
           {SORT_OPTIONS.map(opt => (
@@ -228,7 +219,6 @@ export default function BusinessPage() {
         </div>
       </div>
 
-      {/* Products */}
       {sorted.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">📦</div>
@@ -260,6 +250,14 @@ export default function BusinessPage() {
   );
 }
 
+export default function BusinessPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]">Loading...</div>}>
+      <BusinessPageContent />
+    </Suspense>
+  );
+}
+
 /* ── Product quick-view modal ─────────────────────────────────── */
 function ProductModal({
   product,
@@ -276,7 +274,6 @@ function ProductModal({
   const [added,  setAdded]  = useState(false);
   const [imgIdx, setImgIdx] = useState(0);
 
-  // Touch swipe support
   const touchStartX = React.useRef<number>(0);
   const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchEnd   = (e: React.TouchEvent) => {
@@ -299,13 +296,11 @@ function ProductModal({
     setTimeout(() => setAdded(false), 1800);
   };
 
-  // Close on backdrop click; stop propagation inside the card
   return (
     <div className="prod-modal-backdrop" onClick={onClose}>
       <div className="prod-modal-card" style={{ "--flood-color": "#cc274a" } as React.CSSProperties} onClick={e => e.stopPropagation()}>
         <div className="prod-modal-flood" />
 
-        {/* ── Header bar ── */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
             {business.name}
@@ -319,7 +314,6 @@ function ProductModal({
           </button>
         </div>
 
-        {/* ── Image carousel ── */}
         <div
           className="mx-5 mb-1 bg-black/30 rounded-2xl h-52 flex items-center justify-center overflow-hidden relative select-none"
           onTouchStart={onTouchStart}
@@ -344,7 +338,6 @@ function ProductModal({
             />
           </button>
 
-          {/* Current image — key forces re-mount → CSS fade plays */}
           {images.length > 0 || product.externalImageUrl ? (
             <ProductImage
               product={product}
@@ -355,7 +348,6 @@ function ProductModal({
             <div className="text-6xl opacity-20">📦</div>
           )}
 
-          {/* Left arrow */}
           {hasMultiple && (
             <button
               onClick={e => { e.stopPropagation(); goPrev(); }}
@@ -368,7 +360,6 @@ function ProductModal({
             </button>
           )}
 
-          {/* Right arrow */}
           {hasMultiple && (
             <button
               onClick={e => { e.stopPropagation(); goNext(); }}
@@ -382,7 +373,6 @@ function ProductModal({
           )}
         </div>
 
-        {/* ── Dot indicators ── */}
         {hasMultiple && (
           <div className="flex justify-center gap-1.5 mb-3 pt-2">
             {images.map((_, i) => (
@@ -401,20 +391,17 @@ function ProductModal({
           </div>
         )}
 
-        {/* ── Image counter (e.g. 1 / 3) ── */}
         {hasMultiple && (
           <p className="text-center text-[10px] text-gray-500 -mt-1 mb-2 font-medium">
             {imgIdx + 1} / {images.length}
           </p>
         )}
 
-        {/* ── Details ── */}
         <div className="px-5 pb-5 space-y-3">
           <h2 className="font-heading font-bold text-lg text-white leading-snug">
             {product.name}
           </h2>
 
-          {/* Price row */}
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-white font-heading">
               {formatCurrency(product.sellingPrice)}
@@ -431,7 +418,6 @@ function ProductModal({
             )}
           </div>
 
-          {/* Stock */}
           {product.stock <= 5 && product.stock > 0 && (
             <p className="text-xs font-semibold text-orange-400">⚠ Only {product.stock} left in stock!</p>
           )}
@@ -439,12 +425,10 @@ function ProductModal({
             <p className="text-xs font-semibold text-red-400">✕ Out of stock</p>
           )}
 
-          {/* Description */}
           {product.description && (
             <p className="text-sm text-gray-400 leading-relaxed">{product.description}</p>
           )}
 
-          {/* Video link */}
           {product.videoUrl && (
             <a
               href={product.videoUrl}
@@ -452,7 +436,6 @@ function ProductModal({
               rel="noopener noreferrer"
               className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl border-2 border-red-900/40 bg-red-950/30 hover:bg-red-950/50 hover:border-red-800/50 transition-colors group/vid"
             >
-              {/* YouTube-style play icon */}
               <span className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center shrink-0 group-hover/vid:bg-red-600 transition-colors">
                 <svg width="12" height="14" viewBox="0 0 12 14" fill="white">
                   <path d="M1 1.5v11L11 7 1 1.5z"/>
@@ -468,7 +451,6 @@ function ProductModal({
             </a>
           )}
 
-          {/* Qty + Add to Cart */}
           {product.stock !== 0 && (
             <div className="flex items-center gap-3 pt-1">
               <div className="flex items-center gap-1 border border-gray-700 rounded-xl p-1">
@@ -502,7 +484,6 @@ function ProductModal({
   );
 }
 
-/* ── Product card ─────────────────────────────────────────────── */
 function ProductCard({ product, business }: { product: Product; business: Business }) {
   const { cart, addToCart, updateCartQty, addToWatchlist, removeFromWatchlist, watchlist } = useCart();
   const { user } = useAuth();
@@ -539,7 +520,6 @@ function ProductCard({ product, business }: { product: Product; business: Busine
 
       <div className="prod-card bg-white rounded-card shadow-card hover:shadow-card-hover transition-all duration-300 border border-gray-50 flex flex-col">
 
-        {/* ── Image zone — click opens modal ── */}
         <div
           className="prod-img-zone relative bg-gray-50 rounded-t-card h-36"
           onClick={() => setShowModal(true)}
@@ -566,7 +546,6 @@ function ProductCard({ product, business }: { product: Product; business: Busine
             />
           </button>
 
-          {/* Image or placeholder — pump-up animation targets these */}
           <div className="h-full flex items-center justify-center">
             <ProductImage
               product={product}
@@ -574,7 +553,6 @@ function ProductCard({ product, business }: { product: Product; business: Busine
             />
           </div>
 
-          {/* Video badge — shown when videoUrl exists */}
           {product.videoUrl && (
             <div className="absolute bottom-2 right-2 z-10 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1">
               <svg width="7" height="8" viewBox="0 0 12 14" fill="white"><path d="M1 1.5v11L11 7 1 1.5z"/></svg>
@@ -583,7 +561,6 @@ function ProductCard({ product, business }: { product: Product; business: Busine
           )}
         </div>
 
-        {/* ── Card body ── */}
         <div className="p-3 flex flex-col flex-1">
           <h3
             className="font-heading font-semibold text-sm text-brand-dark line-clamp-2 cursor-pointer hover:text-accent transition-colors"
@@ -688,7 +665,6 @@ function FinanceBusinessPage({ business }: { business: Business }) {
         <p className="text-gray-500 text-sm mt-1">{business.description}</p>
       </div>
 
-      {/* ── Mobile Finance Tab Strip ─────────────────────────── */}
       <div className="md:hidden -mx-4 px-4 mb-5 overflow-x-auto hide-scrollbar">
         <div className="flex border-b border-gray-100" style={{ minWidth: "max-content" }}>
           {FINANCE_TABS.map(tab => (
@@ -822,7 +798,6 @@ function ShareMarketPage({ business }: { business: Business }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-8">
 
-      {/* ── Mobile-only horizontal tab strip (SubHeader hidden on mobile) ── */}
       <div className="md:hidden -mx-4 px-4 mb-4 overflow-x-auto hide-scrollbar">
         <div className="flex border-b border-gray-100 min-w-max">
           {MARKET_TABS.map(tab => (
@@ -845,7 +820,6 @@ function ShareMarketPage({ business }: { business: Business }) {
         </div>
       </div>
 
-      {/* ── Mobile calculator type grid (when on calculators tab) ── */}
       {activeTab === "calculators" && (
         <div className="md:hidden grid grid-cols-4 gap-2 mb-4">
           {CALC_TYPES.map(ct => (
@@ -951,12 +925,10 @@ function ShareMarketPage({ business }: { business: Business }) {
 
       {activeTab === "calculators" && (
         <div className="flex gap-6 items-start">
-          {/* ── Calculator panel (main content) ── */}
           <div className="flex-1 min-w-0">
             <FinanceCalculators activeCalcProp={activeCalc} hideTabBar />
           </div>
 
-          {/* ── Right-side sticky calculator menu (desktop only) ── */}
           <div className="hidden md:block w-44 flex-shrink-0 sticky top-[130px]">
             <div className="bg-white rounded-2xl border border-gray-100 shadow-card overflow-hidden">
               <div className="px-4 py-2.5 border-b border-gray-100">
