@@ -108,6 +108,43 @@ export default function AboutPage() {
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-6 sm:px-8 pt-6 pb-4 border-b border-gray-50">
+          <h2 className="font-heading font-bold text-brand-dark text-xl">Meet the MD</h2>
+        </div>
+        <div className="p-6 sm:p-8">
+          <div className="flex flex-col gap-6 sm:gap-8">
+            <div className="relative w-full">
+              <img
+                src="/images/md.jpeg"
+                alt="Managing Director"
+                className="rounded-2xl shadow-lg w-full h-auto block"
+              />
+              <div
+                className="absolute -bottom-2 -left-2 w-8 h-8 rounded-xl"
+                style={{ background: "linear-gradient(135deg,#FFC43F,#f7a422)" }}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-heading font-bold text-2xl sm:text-3xl text-brand-dark leading-tight">
+                Managing Director
+              </div>
+              <div className="mt-4 mb-6">
+                <div
+                  className="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                  style={{ background: "#FFF8E7", color: "#f7a422" }}
+                >
+                  Managing Director
+                </div>
+              </div>
+              <p className="text-gray-600 italic text-sm leading-relaxed mb-5">
+                "Innovation distinguishes between a leader and a follower. Our vision is to redefine the industry standard."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-6 sm:px-8 pt-6 pb-4 border-b border-gray-50">
           <h2 className="font-heading font-bold text-brand-dark text-xl">Meet the Founder</h2>
         </div>
         <div className="p-6 sm:p-8">

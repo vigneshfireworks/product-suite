@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Users, DollarSign, ScrollText, ArrowLeft, UserCircle, BarChart2 } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, DollarSign, ScrollText, ArrowLeft, UserCircle, BarChart2, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Business } from "@/types";
 
@@ -15,6 +15,7 @@ const subNav = [
   { label: "Expenses",   href: "/expenses", icon: <DollarSign size={16} /> },
   { label: "Demand",     href: "/demand",   icon: <BarChart2 size={16} /> },
   { label: "Audit Logs", href: "/audit",    icon: <ScrollText size={16} /> },
+  { label: "Settings",   href: "/settings", icon: <Settings size={16} /> },
 ];
 
 export default function BusinessAdminLayout({ children }: { children: React.ReactNode }) {

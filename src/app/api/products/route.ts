@@ -12,8 +12,13 @@ export async function GET(req: NextRequest) {
 
   const ids = await redis.smembers<string[]>(keys.productsByBusiness(businessId));
   if (!ids || ids.length === 0) return NextResponse.json([]);
+
   const products = await Promise.all(ids.map((id) => redis.get<Product>(keys.product(id))));
-  return NextResponse.json(products.filter(Boolean));
+  const activeProducts = products.filter(Boolean);
+
+  activeProducts.sort((a, b) => (a.serialNumber ?? 0) - (b.serialNumber ?? 0));
+
+  return NextResponse.json(activeProducts);
 }
 
 export async function POST(req: NextRequest) {
@@ -21,7 +26,7 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth;
 
   const body = await req.json();
-  const { businessId, name, description, originalPrice, sellingPrice, discount, quantity, stock, category, subCategory, images, externalImageUrl } = body;
+  const { businessId, name, description, originalPrice, sellingPrice, discount, quantity, stock, category, subCategory, images, externalImageUrl, serialNumber } = body;
   if (!businessId || !name || !originalPrice || !sellingPrice) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -41,6 +46,7 @@ export async function POST(req: NextRequest) {
     subCategory: subCategory || "",
     images: images || [],
     externalImageUrl: externalImageUrl || "",
+    serialNumber: Number(serialNumber || 0),
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

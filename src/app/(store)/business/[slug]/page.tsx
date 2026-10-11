@@ -1,11 +1,11 @@
 "use client";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Heart, Package, TrendingUp, FileText } from "lucide-react";
 import { FinanceCalculators } from "@/components/ui/FinanceCalculators";
 import { IncomeTaxCalculator } from "@/components/ui/IncomeTaxCalculator";
-import { Business, Product } from "@/types";
+import { Business, Product, Category } from "@/types";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useActiveBusiness } from "@/context/ActiveBusinessContext";
@@ -25,11 +25,16 @@ function BusinessPageContent() {
   const { setActiveBusiness } = useActiveBusiness();
 
   const [business, setBusiness] = useState<Business | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const urlSearchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(urlSearchParams.get("q") ?? "");
   const [sortBy, setSortBy] = useState("default");
+
+  const productCategories = useMemo(() => {
+    return categories.map(c => c.name);
+  }, [categories]);
 
   useEffect(() => {
     if (!authLoading) loadData();
@@ -58,10 +63,20 @@ function BusinessPageContent() {
         return;
       }
 
-      const pRes = await fetch(`/api/products?businessId=${found.id}`);
+      const [pRes, cRes] = await Promise.all([
+        fetch(`/api/products?businessId=${found.id}`),
+        fetch(`/api/categories?businessId=${found.id}`)
+      ]);
+
       if (!pRes.ok) throw new Error(`Products API responded with ${pRes.status}`);
       const prods: Product[] = await pRes.json();
       setProducts(Array.isArray(prods) ? prods : []);
+
+      if (cRes.ok) {
+        const cats = await cRes.json();
+        const sortedCats = (Array.isArray(cats) ? cats : []).sort((a, b) => (a.serialNumber ?? 0) - (b.serialNumber ?? 0));
+        setCategories(sortedCats);
+      }
     } catch (err) {
       console.error("Error loading business data:", err);
       router.push("/");
@@ -107,7 +122,7 @@ function BusinessPageContent() {
       case "discount_desc":  return db - da;
       case "discount_asc":   return da - db;
       case "popular":        return (a.stock ?? 999) - (b.stock ?? 999);
-      default:               return 0;
+      default:               return (a.serialNumber ?? 0) - (b.serialNumber ?? 0);
     }
   });
 
@@ -120,9 +135,6 @@ function BusinessPageContent() {
     { value: "popular",       label: "Frequently Ordered" },
   ];
 
-  const productCategories = Array.from(
-    new Set(products.filter(p => p.category).map(p => p.category))
-  ).sort();
 
   const groupedProducts = sorted.reduce((acc, p) => {
     const cat = p.category || "Other";
@@ -130,6 +142,15 @@ function BusinessPageContent() {
     acc[cat].push(p);
     return acc;
   }, {} as Record<string, Product[]>);
+
+  const sortedGroupedCategories = Object.keys(groupedProducts).sort((a, b) => {
+    const indexA = productCategories.indexOf(a);
+    const indexB = productCategories.indexOf(b);
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 md:py-6">
@@ -227,23 +248,26 @@ function BusinessPageContent() {
         </div>
       ) : (
         <div className="space-y-10">
-          {Object.entries(groupedProducts).map(([cat, prods]) => (
-            <div key={cat} className="space-y-4">
-              <div className="flex items-center gap-3 border-b-2 border-gray-100 pb-2">
-                <span className="font-heading font-bold text-lg text-brand-dark capitalize">
-                  {cat.replace(/_/g, " ")}
-                </span>
-                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                  {prods.length} Products
-                </span>
+          {sortedGroupedCategories.map(cat => {
+            const prods = groupedProducts[cat];
+            return (
+              <div key={cat} className="space-y-4">
+                <div className="flex items-center gap-3 border-b-2 border-gray-100 pb-2">
+                  <span className="font-heading font-bold text-lg text-brand-dark capitalize">
+                    {cat.replace(/_/g, " ")}
+                  </span>
+                  <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                    {prods.length} Products
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {prods.map((p) => (
+                    <ProductCard key={p.id} product={p} business={business} />
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {prods.map((p) => (
-                  <ProductCard key={p.id} product={p} business={business} />
-                ))}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -13,8 +13,8 @@ import { usePagination, Pagination } from "@/components/ui/Pagination";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
 
-interface Category { id: string; name: string; }
-const EMPTY_FORM = { name: "", description: "", originalPrice: "", sellingPrice: "", discount: "", stock: "", category: "", quantity: "1", images: [] as string[], videoUrl: "", externalImageUrl: "" };
+interface Category { id: string; name: string; serialNumber?: number; }
+const EMPTY_FORM = { name: "", description: "", originalPrice: "", sellingPrice: "", discount: "", stock: "", category: "", quantity: "1", images: [] as string[], videoUrl: "", externalImageUrl: "", serialNumber: "" };
 
 export default function BusinessProducts() {
   const { id: businessId } = useParams() as { id: string };
@@ -34,8 +34,10 @@ export default function BusinessProducts() {
   const [saving, setSaving]       = useState(false);
   const [uploading, setUploading] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+  const [newCatSerial, setNewCatSerial] = useState("");
   const [editCat, setEditCat]     = useState<Category | null>(null);
   const [editCatName, setEditCatName] = useState("");
+  const [editCatSerial, setEditCatSerial] = useState("");
   const [catSaving, setCatSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -72,7 +74,7 @@ export default function BusinessProducts() {
   const openCreate = () => { setEditProd(null); setForm({ ...EMPTY_FORM }); setModal(true); };
   const openEdit   = (p: Product) => {
     setEditProd(p);
-    setForm({ name: p.name, description: p.description, originalPrice: String(p.originalPrice), sellingPrice: String(p.sellingPrice), discount: String(p.discount), stock: String(p.stock), category: p.category, quantity: String(p.quantity), images: p.images || [], videoUrl: p.videoUrl || "", externalImageUrl: p.externalImageUrl || "" });
+    setForm({ name: p.name, description: p.description, originalPrice: String(p.originalPrice), sellingPrice: String(p.sellingPrice), discount: String(p.discount), stock: String(p.stock), category: p.category, quantity: String(p.quantity), images: p.images || [], videoUrl: p.videoUrl || "", externalImageUrl: p.externalImageUrl || "", serialNumber: p.serialNumber?.toString() ?? "" });
     setModal(true);
   };
 
@@ -102,7 +104,7 @@ export default function BusinessProducts() {
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ ...form, businessId, originalPrice: Number(form.originalPrice), sellingPrice: Number(form.sellingPrice), discount: Number(form.discount || 0), stock: Number(form.stock || 0), quantity: Number(form.quantity || 1) }),
+      body: JSON.stringify({ ...form, businessId, originalPrice: Number(form.originalPrice), sellingPrice: Number(form.sellingPrice), discount: Number(form.discount || 0), stock: Number(form.stock || 0), quantity: Number(form.quantity || 1), serialNumber: Number(form.serialNumber || 0) }),
     });
     setModal(false); setSaving(false); load();
   };
@@ -118,15 +120,15 @@ export default function BusinessProducts() {
   const addCategory = async () => {
     if (!newCatName.trim()) return;
     setCatSaving(true);
-    await fetch("/api/categories", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ businessId, name: newCatName.trim() }) });
-    setNewCatName(""); setCatSaving(false); loadCats();
+    await fetch("/api/categories", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ businessId, name: newCatName.trim(), serialNumber: newCatSerial === "" ? 0 : Number(newCatSerial) }) });
+    setNewCatName(""); setNewCatSerial(""); setCatSaving(false); loadCats();
   };
 
   const updateCategory = async () => {
     if (!editCat || !editCatName.trim()) return;
     setCatSaving(true);
-    await fetch(`/api/categories/${editCat.id}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ name: editCatName.trim() }) });
-    setEditCat(null); setEditCatName(""); setCatSaving(false); loadCats();
+    await fetch(`/api/categories/${editCat.id}`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ name: editCatName.trim(), serialNumber: editCatSerial === "" ? 0 : Number(editCatSerial) }) });
+    setEditCat(null); setEditCatName(""); setEditCatSerial(""); setCatSaving(false); loadCats();
   };
 
   const deleteCategory = async (c: Category) => {
@@ -240,6 +242,7 @@ export default function BusinessProducts() {
               </select>
             </div>
             <Input label="Qty per Unit" type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+            <Input label="Serial Number (S.No)" type="number" value={form.serialNumber} onChange={e => setForm(f => ({ ...f, serialNumber: e.target.value }))} placeholder="0" />
             <Input label="External Image URL (optional)" value={form.externalImageUrl} onChange={e => setForm(f => ({ ...f, externalImageUrl: e.target.value }))} placeholder="https://..." />
           </div>
           <Textarea label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
@@ -277,14 +280,25 @@ export default function BusinessProducts() {
       <Modal open={catModal} onClose={() => setCatModal(false)} title="Manage Categories" size="md">
         <div className="space-y-4">
           <div className="flex gap-2">
-            <input
-              value={newCatName}
-              onChange={e => setNewCatName(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") addCategory(); }}
-              placeholder="New category name..."
-              className="flex-1 px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none focus:border-accent"
-              style={{ borderColor: "#e5e7eb" }}
-            />
+            <div className="flex-1 flex gap-2">
+              <input
+                value={newCatName}
+                onChange={e => setNewCatName(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") addCategory(); }}
+                placeholder="New category name..."
+                className="flex-1 px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none focus:border-accent"
+                style={{ borderColor: "#e5e7eb" }}
+              />
+              <input
+                value={newCatSerial}
+                onChange={e => setNewCatSerial(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") addCategory(); }}
+                placeholder="S.No"
+                type="number"
+                className="w-20 px-3 py-2.5 border-2 rounded-xl text-sm focus:outline-none focus:border-accent"
+                style={{ borderColor: "#e5e7eb" }}
+              />
+            </div>
             <Button onClick={addCategory} loading={catSaving} size="sm">Add</Button>
           </div>
           {categories.length === 0 ? (
@@ -293,6 +307,7 @@ export default function BusinessProducts() {
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {categories.map(c => (
                 <div key={c.id} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-bold text-gray-400 w-6">{c.serialNumber ?? 0}</span>
                   {editCat?.id === c.id ? (
                     <>
                       <input
@@ -302,13 +317,20 @@ export default function BusinessProducts() {
                         className="flex-1 px-2 py-1 border rounded-lg text-sm focus:outline-none"
                         autoFocus
                       />
+                      <input
+                        value={editCatSerial}
+                        onChange={e => setEditCatSerial(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") updateCategory(); if (e.key === "Escape") setEditCat(null); }}
+                        type="number"
+                        className="w-16 px-2 py-1 border rounded-lg text-sm focus:outline-none"
+                      />
                       <button onClick={updateCategory} disabled={catSaving} className="text-xs font-bold text-green-600 hover:text-green-700 px-2">Save</button>
                       <button onClick={() => setEditCat(null)} className="text-xs text-gray-400 hover:text-gray-600 px-1">✕</button>
                     </>
                   ) : (
                     <>
                       <span className="flex-1 text-sm font-semibold text-brand-dark">{c.name}</span>
-                      <button onClick={() => { setEditCat(c); setEditCatName(c.name); }} className="text-xs text-blue-600 hover:text-blue-700 px-2">Edit</button>
+                      <button onClick={() => { setEditCat(c); setEditCatName(c.name); setEditCatSerial(c.serialNumber?.toString() ?? ""); }} className="text-xs text-blue-600 hover:text-blue-700 px-2">Edit</button>
                       <button onClick={() => deleteCategory(c)} className="text-xs text-red-500 hover:text-red-700 px-1">Delete</button>
                     </>
                   )}

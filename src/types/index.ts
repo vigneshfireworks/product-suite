@@ -1,6 +1,12 @@
 export type UserRole = "admin" | "partner" | "customer";
 export type BusinessCategory = "retail" | "finance" | "market_analysis" | "other";
 
+export interface Category {
+  id: string;
+  name: string;
+  serialNumber?: number;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -26,6 +32,7 @@ export interface Business {
   description: string;
   isActive: boolean;
   displayOrder?: number;
+  productLimit?: number;
   /** When true, purchases from this business earn wallet cashback and can redeem wallet balance. */
   walletEnabled?: boolean;
   createdAt: string;
@@ -66,6 +73,7 @@ export interface Product {
   images: string[];
   videoUrl?: string;
   externalImageUrl?: string;
+  serialNumber?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
