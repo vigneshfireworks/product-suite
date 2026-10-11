@@ -86,14 +86,18 @@ export default function BusinessSettings() {
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            <Input
-              label="Dashboard Product Limit"
-              type="number"
-              value={productLimit}
-              onChange={e => setProductLimit(e.target.value)}
-              placeholder="e.g. 10"
-              description="Maximum number of products to load on the customer dashboard."
-            />
+            <div className="space-y-1">
+              <Input
+                label="Dashboard Product Limit"
+                type="number"
+                value={productLimit}
+                onChange={e => setProductLimit(e.target.value)}
+                placeholder="e.g. 10"
+              />
+              <p className="text-xs text-gray-500 ml-1">
+                Maximum number of products to load on the customer dashboard.
+              </p>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
