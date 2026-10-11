@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const products = await Promise.all(ids.map((id) => redis.get<Product>(keys.product(id))));
   const activeProducts = products.filter(Boolean);
 
-  activeProducts.sort((a, b) => (a.serialNumber ?? 0) - (b.serialNumber ?? 0));
+  activeProducts.sort((a, b) => (a?.serialNumber ?? 0) - (b?.serialNumber ?? 0));
 
   return NextResponse.json(activeProducts);
 }
